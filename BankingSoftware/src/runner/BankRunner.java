@@ -7,17 +7,17 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import database.ConnectionCreation;
-import database.structureClasses.BankAccountDetails;
-import database.structureClasses.BankCustomerDetails;
-import database.structureClasses.BranchDetails;
-import database.structureClasses.EmployeeDetails;
-import database.structureClasses.UserDetails;
+import database.structureClasses.BankAccount;
+import database.structureClasses.BankCustomer;
+import database.structureClasses.BankBranch;
+import database.structureClasses.BankEmployee;
+import database.structureClasses.BankUser;
 import globalUtilities.GlobalChecker;
 import handleError.CustomException;
-import helper.BankCommonHelper;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.UserHelper;
@@ -25,7 +25,6 @@ import helper.UserHelper;
 public class BankRunner {
 	static Logger logger = Logger.getGlobal();
 	
-	static BankCommonHelper bankHelper = new BankCommonHelper();
 	static UserHelper userHelper = new UserHelper();
 	static CustomerHelper customerHelper = new CustomerHelper();
 	static EmployeeHelper employeeHelper = new EmployeeHelper();
@@ -41,7 +40,7 @@ public class BankRunner {
 		
 		logger.setLevel(Level.ALL);
 		
-		int choice = 0;
+		int choice = -1;
 		do {
 			try {
 				mainPage();
@@ -50,53 +49,88 @@ public class BankRunner {
 				switch(choice) {
 					case 1:{
 						logger.log(Level.INFO,"----- Login Here -----");
-						UserDetails userLoginDetails = new UserDetails();
+						BankUser userLoginDetails = new BankUser();
 						logger.log(Level.INFO,"Enter the Phone number to Login");
 						
-//						Admin login Credential
-//						userLoginDetails.setPhonenumber("9876543210");
+//						String phoneNo = scanner.nextLine();
+//						validPhoneNumber(phoneNo);
+//						userLoginDetails.setPhonenumber(phoneNo);
 //						logger.log(Level.INFO,"Enter the Password");
-//						userLoginDetails.setPassword("12345");
+//						String password = scanner.nextLine();
+//						validPassword(password);
+//						userLoginDetails.setPassword(password);	
 						
-//						customer Login 1
-						userLoginDetails.setPhonenumber("8901234567");
+//						Admin login Credential //Hemanth
+						String phoneNo = "9876543210";
+						validPhoneNumber(phoneNo);
+						userLoginDetails.setPhonenumber(phoneNo);
 						logger.log(Level.INFO,"Enter the Password");
-						userLoginDetails.setPassword("54321");
-						
-//						customer Login 2
-//						userLoginDetails.setPhonenumber("9123456789");
+						String password = "Hem@12345";
+						validPassword(password);
+						userLoginDetails.setPassword(password);						
+//						
+//						customer Login 1 //Madhavan
+//						String phoneNo = "8901234567";
+//						validPhoneNumber(phoneNo);
+//						userLoginDetails.setPhonenumber(phoneNo);
 //						logger.log(Level.INFO,"Enter the Password");
-//						userLoginDetails.setPassword("54321");
+//						String password = "Madhavan@12345";
+//						validPassword(password);
+//						userLoginDetails.setPassword(password);
 						
-//						Employee Login 1
-//						userLoginDetails.setPhonenumber("9087654321");
+//						customer Login 2 //Joshi
+//						String phoneNo = "9123456789";
+//						validPhoneNumber(phoneNo);
+//						userLoginDetails.setPhonenumber(phoneNo);
 //						logger.log(Level.INFO,"Enter the Password");
-//						userLoginDetails.setPassword("11111");
+//						String password = "Joshi@12345";
+//						validPassword(password);
+//						userLoginDetails.setPassword(password);
+						
+//						Employee Login 1 //Surya
+//						String phoneNo = "9087654321";
+//						validPhoneNumber(phoneNo);
+//						userLoginDetails.setPhonenumber(phoneNo);
+//						logger.log(Level.INFO,"Enter the Password");
+//						String password = "Surya@12345";
+//						validPassword(password);
+//						userLoginDetails.setPassword(password);
+						
+//						User Login 2 //Surya
+//						String phoneNo = "7654321098";
+//						validPhoneNumber(phoneNo);
+//						userLoginDetails.setPhonenumber(phoneNo);
+//						logger.log(Level.INFO,"Enter the Password");
+//						String password = "Bharath@12345";
+//						validPassword(password);
+//						userLoginDetails.setPassword(password);
 						
 						int result =userHelper.userLogin(userLoginDetails); 
-						if(result == 3) {
-							new AdminRunner();
-						}
-						else if(result == 2) {
-							new EmployeeRunner();
-						}
-						else if(result ==1) {
-							new CustomerRunner();
-						}
-						else {
-							logger.log(Level.WARNING,"Login Failed");
+						switch(result) {
+							case 1 : {
+								new CustomerRunner();
+								break;
+							}
+							case 2 : {
+								new EmployeeRunner();
+								break;
+							}
+							case 3 : {
+								new AdminRunner();
+								break;
+							}
+							default : logger.log(Level.WARNING,"Login Failed");
 						}
 						break;
 					}
 				}
 			}
 			catch(InputMismatchException e) {
-				logger.log(Level.SEVERE,"Error in input Type",e);
+				logger.log(Level.SEVERE,"Error in input Type");
 				scanner.nextLine();
 			}
 			catch(CustomException e) {
-				e.printStackTrace();
-				logger.log(Level.SEVERE,"Error occured : ",e.getMessage());
+				logger.log(Level.SEVERE,e.getMessage());
 			}
 		}
 		while(choice!=0);
@@ -105,33 +139,33 @@ public class BankRunner {
 		ConnectionCreation.closeConnection();
 	}
 	
-	static void avaliableBranch(Map<Integer,BranchDetails> mapBranchDetails) throws CustomException {
+	static void avaliableBranch(Map<Integer,BankBranch> mapBranchDetails) throws CustomException {
 		
-		for (Map.Entry<Integer, BranchDetails> entry : mapBranchDetails.entrySet()) {
+		for (Map.Entry<Integer, BankBranch> entry : mapBranchDetails.entrySet()) {
 		    Integer branchId = entry.getKey();
-		    BranchDetails branchDetails = entry.getValue();
+		    BankBranch branchDetails = entry.getValue();
 		    logger.log(Level.FINEST," "+branchId + " : " + branchDetails.getCity()
 		    					+" , Address : "+branchDetails.getAddress());
 		}
 	}
 	
-	static void avaliableUser(Map<Integer,BankCustomerDetails> mapUserDetails) throws CustomException {
+	static void avaliableUser(Map<Integer,BankCustomer> mapUserDetails) throws CustomException {
 		
 		logger.log(Level.FINEST,"Total no of Users :"+mapUserDetails.size());
-		for (Map.Entry<Integer, BankCustomerDetails> entry : mapUserDetails.entrySet()) {
+		for (Map.Entry<Integer, BankCustomer> entry : mapUserDetails.entrySet()) {
 		    Integer userId = entry.getKey();
-		    BankCustomerDetails branchDetails = entry.getValue();
+		    BankCustomer branchDetails = entry.getValue();
 		    logger.log(Level.FINEST," "+userId + " : " + branchDetails.getName()
 		    					+" , Address,  : "+branchDetails.getAddress());
 		}
 	}
 	
-	static void availableAccount(Map<Integer,BankAccountDetails> mapAccountDetails) throws CustomException{
+	static void availableAccount(Map<Integer,BankAccount> mapAccountDetails) throws CustomException{
 		
 		logger.log(Level.FINEST,"Total no of Accounts : "+mapAccountDetails.size());
-		for (Map.Entry<Integer, BankAccountDetails> entry : mapAccountDetails.entrySet()) {
+		for (Map.Entry<Integer, BankAccount> entry : mapAccountDetails.entrySet()) {
 			int id = entry.getKey();
-		    BankAccountDetails branchAccountDetails = entry.getValue();
+		    BankAccount branchAccountDetails = entry.getValue();
 		    logger.log(Level.FINEST,"Id : "+id
     					+",	Account Id : "+branchAccountDetails.getAccountNo() 
     					+", Balance : " + branchAccountDetails.getBalance()
@@ -144,7 +178,7 @@ public class BankRunner {
 	}
 	
 	static void mainPage() {
-		logger.log(Level.INFO,"\nWelcome to Zoho Bank ");
+		logger.log(Level.FINER,"\nWelcome to Zoho Bank ");
 		logger.log(Level.INFO,"1. Login");
 		logger.log(Level.INFO,"0. Close the Application");
 	}
@@ -155,7 +189,7 @@ public class BankRunner {
 	     return dateFormat.format(date);
 	}
 	
-	protected void employeeDetails(EmployeeDetails employeeDetails) {
+	protected void employeeDetails(BankEmployee employeeDetails) {
         logger.log(Level.FINEST, "**************************************************"
         		+ "\nEmployee Details :"
         		+ "\nEmail : "+employeeDetails.getEmail()
@@ -173,8 +207,100 @@ public class BankRunner {
     }
 	
 	protected static boolean isValidPassword(String password) {
+		if(password == null) {
+			return false;
+		}
         String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{" + 8 + ",}$";
         Pattern pattern = Pattern.compile(regex);
         return pattern.matcher(password).matches();
     }
+	
+	public static boolean isValidEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        Matcher matcher = pattern.matcher(email);
+
+        return matcher.matches();
+    }
+	
+	public static boolean isValidIndianPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null) {
+            return false;
+        }
+        String indianPhoneNumberRegex = "^(\\+91[\\-\\s]?)?[0]?[6789]\\d{9}$";
+
+        Pattern pattern = Pattern.compile(indianPhoneNumberRegex);
+        Matcher matcher = pattern.matcher(phoneNumber);
+
+        return matcher.matches();
+    }
+	
+	public static void validPassword(String password) throws CustomException {
+		try {
+			if(!isValidPassword(password)) {
+				throw new CustomException("\nEnter the Valid Password");
+			}
+		}
+		catch(CustomException e) {
+			logger.log(Level.WARNING,"\nEnter the Valid Password\n"
+					+ "- At least one digit\\n\"\n"
+					+ "- At least one lowercase letter\n"
+					+ "- At least one uppercase letter\n"
+					+ "- At least one special character\n"
+					+ "- No whitespace allowed\n"
+					+ "- Minimum length of 8 characters\n");
+			throw new  CustomException(e.getMessage());
+		}
+	}
+	
+	public static void validEmail(String email) throws CustomException {
+		try {
+			if(!isValidEmail(email)) {
+				throw new CustomException("\nEnter the Valid Email");
+			}
+		}
+		catch(CustomException e) {
+			throw new  CustomException(e.getMessage());
+		}
+	}
+	
+	public static void validPhoneNumber(String phoneNumber) throws CustomException {
+		try {
+			if(!isValidIndianPhoneNumber(phoneNumber)) {
+				throw new CustomException("Enter the Valid Phone number");
+			}
+		}
+		catch(CustomException e) {
+			throw new  CustomException(e.getMessage(),e);
+		}
+	}
+	
+	public static void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails) {
+      
+        logger.log(Level.FINEST,"Total no of Employee : "+mapAccountDetails.size());
+		for (Map.Entry<Integer, BankEmployee> entry : mapAccountDetails.entrySet()) {
+			int id = entry.getKey();
+		    BankEmployee employeeDetails = entry.getValue();
+		    logger.log(Level.FINEST, "\nEmployee no: "+ id
+	        		+"\nEmail: "+ employeeDetails.getEmail()
+	        		+"\nPhone Number: "+ employeeDetails.getPhonenumber()
+	        		+"\nName: "+ employeeDetails.getName()
+	        		+"\nGender: "+ employeeDetails.getGender()
+	        		+"\nAddress: "+ employeeDetails.getAddress()
+	        		+"\nBranch ID: "+ employeeDetails.getBranchDetails().getBranch_id());
+		    int access = employeeDetails.getEmployeeAccess();
+		    if(access == 1) {
+		    	 logger.log(Level.FINEST, "Role: Admin");
+		    }
+		    else {
+		    	 logger.log(Level.FINEST, "Role: Employee");
+		    }
+	        		
+		}
+    }
+	
 }

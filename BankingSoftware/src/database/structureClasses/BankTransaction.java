@@ -1,6 +1,6 @@
 package database.structureClasses;
 
-public class BankTransactionDetails {
+public class BankTransaction {
 	private String transactionId;
 	private Long transactionTimestamp;
 	private int userId;

@@ -1,6 +1,6 @@
 package database.structureClasses;
 
-public class BranchDetails {
+public class BankBranch {
 	private int branch_id;
 	private String ifsc;
 	private String address;

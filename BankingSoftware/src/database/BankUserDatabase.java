@@ -7,19 +7,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-import database.structureClasses.BankCustomerDetails;
-import database.structureClasses.EmployeeDetails;
-import database.structureClasses.UserDetails;
+import database.structureClasses.BankCustomer;
+import database.structureClasses.BankEmployee;
+import database.structureClasses.BankUser;
 import globalUtilities.GlobalChecker;
 import handleError.CustomException;
-import helper.BankCommonHelper;
 
-public class UserDatabase implements IUserData {
+public class BankUserDatabase implements IUserData {
 
 	Connection connection;
 	static int userId;
 
-	public UserDatabase() {
+	public BankUserDatabase() {
 		try {
 			connection = ConnectionCreation.getConnection();
 		} catch (CustomException e) {
@@ -28,7 +27,7 @@ public class UserDatabase implements IUserData {
 	}
 	
 	@Override
-	public int userLogin(UserDetails userDetails) throws CustomException {
+	public int userLogin(BankUser userDetails) throws CustomException {
 	    try {
 	    	GlobalChecker.checkNull(userDetails);
 	        String query = "SELECT U.USER_ID,U.USER_TYPE,U.STATUS, B.ACCESS " +
@@ -60,12 +59,12 @@ public class UserDatabase implements IUserData {
 	}
 
 	@Override
-	public boolean validatePassword(UserDetails userDetails) throws CustomException {
+	public boolean validatePassword(BankUser userDetails) throws CustomException {
 		try {
 			String validateQuery = "SELECT USER_ID FROM ZohoBankUser WHERE USER_ID = ? AND PASSWORD = ?;";
 			
 			try(PreparedStatement validateStatement = connection.prepareStatement(validateQuery)){
-				validateStatement.setInt(1, UserDatabase.getUserId());
+				validateStatement.setInt(1, BankUserDatabase.getUserId());
 	            validateStatement.setString(2, userDetails.getPassword());
 	            
 	            try (ResultSet resultSet = validateStatement.executeQuery()) {
@@ -87,11 +86,11 @@ public class UserDatabase implements IUserData {
 	}
 
 	public void setUserId(int userId) {
-		UserDatabase.userId = userId;
+		BankUserDatabase.userId = userId;
 	}
 	
 	@Override
-	public boolean createBankUserOrEmployee(List<? extends UserDetails> userDetails, boolean isEmployee) throws CustomException {
+	public boolean createBankUserOrEmployee(List<? extends BankUser> userDetails, boolean isEmployee) throws CustomException {
 	    try {
 	        GlobalChecker.checkNull(userDetails);
 
@@ -125,15 +124,15 @@ public class UserDatabase implements IUserData {
 	            try (ResultSet generatedKeys = insertStatementUser.getGeneratedKeys()) {
 	                int i = 0;
 	                while (generatedKeys.next()) {
-	                    UserDetails userDetailsSpecific = userDetails.get(i);
+	                    BankUser userDetailsSpecific = userDetails.get(i);
 	                    if (isEmployee) {
 	                        insertStatementSpecific.setInt(1, generatedKeys.getInt(1));
-	                        insertStatementSpecific.setInt(2, ((EmployeeDetails) userDetailsSpecific).getEmployeeAccess());
-	                        insertStatementSpecific.setInt(3, ((EmployeeDetails) userDetailsSpecific).getBranchDetails().getBranch_id());
+	                        insertStatementSpecific.setInt(2, ((BankEmployee) userDetailsSpecific).getEmployeeAccess());
+	                        insertStatementSpecific.setInt(3, ((BankEmployee) userDetailsSpecific).getBranchDetails().getBranch_id());
 	                    } else {
 	                        insertStatementSpecific.setInt(1, generatedKeys.getInt(1));
-	                        insertStatementSpecific.setString(2, ((BankCustomerDetails) userDetailsSpecific).getPanNumber());
-	                        insertStatementSpecific.setString(3, ((BankCustomerDetails) userDetailsSpecific).getAadharNumber());
+	                        insertStatementSpecific.setString(2, ((BankCustomer) userDetailsSpecific).getPanNumber());
+	                        insertStatementSpecific.setString(3, ((BankCustomer) userDetailsSpecific).getAadharNumber());
 	                    }
 	                    insertStatementSpecific.addBatch();
 	                    i++;
@@ -142,8 +141,8 @@ public class UserDatabase implements IUserData {
 
 	            int[] specificAccountResult = insertStatementSpecific.executeBatch();
 
-	            return BankCommonHelper.checkElementsNonZero(userAccountResult) &&
-	                    BankCommonHelper.checkElementsNonZero(specificAccountResult);
+	            return GlobalChecker.checkElementsNonZero(userAccountResult) &&
+	            		GlobalChecker.checkElementsNonZero(specificAccountResult);
 	        }
 	    } catch (SQLException e) {
 	        throw new CustomException("Exception occurred while creating user : ", e);

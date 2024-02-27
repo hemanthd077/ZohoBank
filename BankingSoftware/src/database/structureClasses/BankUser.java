@@ -1,6 +1,6 @@
 package database.structureClasses;
 
-public class UserDetails {
+public class BankUser {
 	private int userId;
 	private String Email;
 	private String password;

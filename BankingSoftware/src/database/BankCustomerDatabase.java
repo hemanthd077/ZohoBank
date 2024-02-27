@@ -4,21 +4,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import database.structureClasses.BankCustomerDetails;
+import database.structureClasses.BankCustomer;
+import database.structureClasses.BankUser;
 import globalUtilities.GlobalChecker;
 import handleError.CustomException;
-import helper.BankCommonHelper;
 
-public class CustomerDatabase implements ICustomerData {
+public class BankCustomerDatabase implements ICustomerData {
 	
 	Connection connection;
 	
-	public CustomerDatabase() {
+	public BankCustomerDatabase() {
 		try {
 			connection = ConnectionCreation.getConnection();
 		} catch (CustomException e) {
@@ -27,23 +25,19 @@ public class CustomerDatabase implements ICustomerData {
 	}
 	
 	@Override
-	public Map<Integer,BankCustomerDetails> getUserDetails(int status) throws CustomException{
-		Map<Integer,BankCustomerDetails> resultUserData = new HashMap<>();
-		String Query;
-		if(status == 0) {
-			Query = "SELECT * FROM ZohoBankUser U "
-					+ "JOIN BankCustomer C ON U.USER_ID = C.CUSTOMER_ID ;";
-		}else {
-			Query = "SELECT * FROM ZohoBankUser U "
-				+ "JOIN BankCustomer C ON U.USER_ID = C.CUSTOMER_ID  where STATUS = "+status+";";
-		}
+	public Map<Integer,BankCustomer> getUserDetails(int status) throws CustomException{
+		Map<Integer,BankCustomer> resultUserData = new HashMap<>();
+		
+		String Query = "SELECT * FROM ZohoBankUser U "
+				+ "JOIN BankCustomer C ON U.USER_ID = C.CUSTOMER_ID where STATUS = ?;";
 		try {
 			try(PreparedStatement getBranchStatement = connection.prepareStatement(Query)){
+				getBranchStatement.setInt(1, status);
 				try(ResultSet resultSet = getBranchStatement.executeQuery()){
 
 					int id = 1;
 					while(resultSet.next()) {
-						BankCustomerDetails bankCustomerDetails = new BankCustomerDetails();
+						BankCustomer bankCustomerDetails = new BankCustomer();
 						
 						bankCustomerDetails.setUserId(resultSet.getInt("USER_ID"));
 						bankCustomerDetails.setEmail(resultSet.getString("EMAIL"));
@@ -66,13 +60,15 @@ public class CustomerDatabase implements ICustomerData {
 	}
 	
 	@Override
-	public <K,V> boolean updateUser(BankCustomerDetails customerDetails,Map<K,V> fieldAndValue) throws CustomException {
+	public <K,V, T> boolean updateUser(T customerDetails,Map<K,V> fieldAndValue) throws CustomException {
 		try {
-			String setFields =  BankCommonHelper.userUpdateQueryBuilder(fieldAndValue);
+			GlobalChecker.checkNull(fieldAndValue);
+			
+			String setFields =  GlobalChecker.userUpdateQueryBuilder(fieldAndValue);
 			String updateQuery = "update ZohoBankUser set "+setFields+" where USER_ID = ?";
 			
 			try(PreparedStatement updatePreparedStatement = connection.prepareStatement(updateQuery)){
-				updatePreparedStatement.setInt(1,customerDetails.getUserId());
+				updatePreparedStatement.setInt(1,((BankUser) customerDetails).getUserId());
 				
 				return updatePreparedStatement.executeUpdate()!=0;
 			}
@@ -83,24 +79,24 @@ public class CustomerDatabase implements ICustomerData {
 	}
 	
 	@Override
-	public BankCustomerDetails getCustomerData() throws CustomException {
+	public BankCustomer getCustomerData() throws CustomException {
 	    try {
 	    	String query = "SELECT U.*, C.*"
 	    	        + "FROM ZohoBankUser U "
 	    	        + "LEFT JOIN BankCustomer C ON U.USER_ID = C.CUSTOMER_ID "
 	    	        + "WHERE U.USER_ID = ?";
 
-	    	BankCustomerDetails bankCustomerDetails = new BankCustomerDetails();
+	    	BankCustomer bankCustomerDetails = new BankCustomer();
 	        try (PreparedStatement loginStatement = connection.prepareStatement(query)) {
 
-	            loginStatement.setInt(1, UserDatabase.userId);
+	            loginStatement.setInt(1, BankUserDatabase.userId);
 	            try (ResultSet resultSet = loginStatement.executeQuery()) {
 	                if (resultSet.next()) {
 	                	bankCustomerDetails.setUserId(resultSet.getInt("USER_ID"));
 	                	bankCustomerDetails.setEmail(resultSet.getString("Email"));
 	                	bankCustomerDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 	                	bankCustomerDetails.setName(resultSet.getString("NAME"));
-	                	if(BankCommonHelper.columnExists(resultSet, "DOB")) {
+	                	if(GlobalChecker.columnExists(resultSet, "DOB")) {
 	                		bankCustomerDetails.setDateOfBirth(resultSet.getString("DOB")); 
 	                	}
 	                	bankCustomerDetails.setGender(resultSet.getString("GENDER"));

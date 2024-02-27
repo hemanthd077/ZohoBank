@@ -1,4 +1,4 @@
-package helper;
+package globalUtilities;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -17,10 +17,10 @@ public class ColoredConsoleHandler extends ConsoleHandler {
         String colorCode;
         switch (level.getName()) {
             case "SEVERE":
-                colorCode = "\u001B[31m"; // Red
+                colorCode = "\u001B[1;41;37m"; // Red
                 break;
             case "WARNING":
-                colorCode = "\u001B[33m"; // Yellow
+                colorCode = "\u001B[1;33m"; // Yellow
                 break;
             case "INFO":
                 colorCode = "\u001B[36m"; // SkyBlueGreen
@@ -30,6 +30,9 @@ public class ColoredConsoleHandler extends ConsoleHandler {
             	break;
             case "FINE":
             	colorCode = "\u001B[1;35m"; //white with bold
+            	break;
+            case "FINER":
+            	colorCode = "\u001B[1;7;97m"; //white with bold
             	break;
             default:
                 colorCode = "\u001B[0m"; // Reset color

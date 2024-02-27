@@ -8,15 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import database.structureClasses.BranchDetails;
+import database.structureClasses.BankBranch;
+import globalUtilities.GlobalChecker;
 import handleError.CustomException;
-import helper.BankCommonHelper;
 
-public class BranchDatabase {
+public class BankBranchDatabase {
 	
 	Connection connection;
 	
-	public BranchDatabase() {
+	public BankBranchDatabase() {
 		try {
 			connection = ConnectionCreation.getConnection();
 		} catch (CustomException e) {
@@ -24,9 +24,9 @@ public class BranchDatabase {
 		}
 	}
 	
-	public <T> Map<Integer,BranchDetails> getBranchDetails(List<String> fieldList)  throws CustomException{
-		String fields = BankCommonHelper.stringToPattern(fieldList, ",");
-		Map<Integer,BranchDetails> branchData = new HashMap<>();
+	public <T> Map<Integer,BankBranch> getBranchDetails(List<String> fieldList)  throws CustomException{
+		String fields = GlobalChecker.stringToPattern(fieldList, ",");
+		Map<Integer,BankBranch> branchData = new HashMap<>();
 		
 		String Query = "select "+fields+" from BranchData";
 		try {
@@ -34,20 +34,20 @@ public class BranchDatabase {
 				try(ResultSet resultSet = getBranchStatement.executeQuery()){
 					while(resultSet.next()) {
 						int branchId = resultSet.getInt("BRANCH_ID");
-						BranchDetails branchDetails = new BranchDetails();
-						if(BankCommonHelper.columnExists(resultSet,"BRANCH_ID")) {
+						BankBranch branchDetails = new BankBranch();
+						if(GlobalChecker.columnExists(resultSet,"BRANCH_ID")) {
 							branchDetails.setBranch_id(resultSet.getInt("BRANCH_ID"));
 						}
-						if(BankCommonHelper.columnExists(resultSet,"IFSC")) {
+						if(GlobalChecker.columnExists(resultSet,"IFSC")) {
 							branchDetails.setIfsc(resultSet.getString("IFSC"));
 						}
-						if(BankCommonHelper.columnExists(resultSet,"CITY")) {
+						if(GlobalChecker.columnExists(resultSet,"CITY")) {
 							branchDetails.setCity(resultSet.getString("CITY"));
 						}
-						if(BankCommonHelper.columnExists(resultSet,"STATE")) {
+						if(GlobalChecker.columnExists(resultSet,"STATE")) {
 							branchDetails.setState(resultSet.getString("STATE"));
 						}
-						if(BankCommonHelper.columnExists(resultSet,"ADDRESS")) {
+						if(GlobalChecker.columnExists(resultSet,"ADDRESS")) {
 							branchDetails.setAddress(resultSet.getString("ADDRESS"));
 						}
 						branchData.put(branchId,branchDetails);

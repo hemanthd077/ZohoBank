@@ -2,14 +2,14 @@ package database;
 
 import java.util.List;
 
-import database.structureClasses.UserDetails;
+import database.structureClasses.BankUser;
 import handleError.CustomException;
 
 public interface IUserData {
 	
-	public int userLogin(UserDetails userDetails) throws CustomException;
+	public int userLogin(BankUser userDetails) throws CustomException;
 	
-	public boolean validatePassword(UserDetails userDetails) throws CustomException;
+	public boolean validatePassword(BankUser userDetails) throws CustomException;
 	
-	public boolean createBankUserOrEmployee(List<? extends UserDetails> userDetails, boolean isEmployee) throws CustomException;
+	public boolean createBankUserOrEmployee(List<? extends BankUser> userDetails, boolean isEmployee) throws CustomException;
 }

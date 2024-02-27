@@ -3,29 +3,39 @@ package helper;
 import java.util.List;
 import java.util.Map;
 
-import database.BranchDatabase;
-import database.UserDatabase;
-import database.structureClasses.BranchDetails;
-import database.structureClasses.UserDetails;
+import database.BankBranchDatabase;
+import database.BankUserDatabase;
+import database.structureClasses.BankBranch;
+import database.structureClasses.BankUser;
+import globalUtilities.GlobalChecker;
 import handleError.CustomException;
 
 public class UserHelper {
 	
-	static UserDatabase userDatabase = new UserDatabase();
-	static BranchDatabase branchDatabase = new BranchDatabase();
+	static BankUserDatabase userDatabase = new BankUserDatabase();
+	static BankBranchDatabase branchDatabase = new BankBranchDatabase();
 	
-	public int userLogin(UserDetails userDetails) throws CustomException {
+	public int userLogin(BankUser userDetails) throws CustomException {
 		
 		try {
-			int loginResult = userDatabase.userLogin(userDetails);
-			return loginResult;
+			GlobalChecker.checkNull(userDetails);
+			userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
+			return userDatabase.userLogin(userDetails);
 		} catch (CustomException e) {
 			throw new CustomException(e.getMessage(),e);
 		}
 	}
 	
-	public Map<Integer,BranchDetails> getBranchData()  throws CustomException{
+	public Map<Integer,BankBranch> getBranchData()  throws CustomException{
 		return branchDatabase.getBranchDetails(List.of("BRANCH_ID","IFSC","CITY","ADDRESS"));
+	}
+	
+	public boolean validatePassword(BankUser userDetails) throws CustomException {
+		userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
+		if(userDatabase.validatePassword(userDetails)) {
+			return true;
+		}
+		return false;
 	}
 	
 	

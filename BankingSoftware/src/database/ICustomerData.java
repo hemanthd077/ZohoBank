@@ -1,16 +1,15 @@
 package database;
 
-import java.util.List;
 import java.util.Map;
 
-import database.structureClasses.BankCustomerDetails;
+import database.structureClasses.BankCustomer;
 import handleError.CustomException;
 
 public interface ICustomerData {
 	
-	public Map<Integer,BankCustomerDetails> getUserDetails(int status) throws CustomException;
+	public Map<Integer,BankCustomer> getUserDetails(int status) throws CustomException;
 	
-	public <K,V> boolean updateUser(BankCustomerDetails bankCustomerDetails,Map<K,V> fieldAndValue) throws CustomException;
+	public <K,V,T> boolean updateUser(T bankCustomerDetails,Map<K,V> fieldAndValue) throws CustomException;
 	
-	public BankCustomerDetails getCustomerData() throws CustomException;
+	public BankCustomer getCustomerData() throws CustomException;
 }

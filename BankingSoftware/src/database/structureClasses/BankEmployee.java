@@ -1,25 +1,16 @@
 package database.structureClasses;
 
-public class EmployeeDetails extends UserDetails {
+public class BankEmployee extends BankUser {
 	private int employeeId;
 	private int employeeAccess;
-	private UserDetails userDetails;
-	private BranchDetails branchDetails;
+	private BankBranch branchDetails;
 
-	public BranchDetails getBranchDetails() {
+	public BankBranch getBranchDetails() {
 		return branchDetails;
 	}
 
-	public void setBranchDetails(BranchDetails branchDetails) {
+	public void setBranchDetails(BankBranch branchDetails) {
 		this.branchDetails = branchDetails;
-	}
-
-	public UserDetails getUserDetails() {
-		return userDetails;
-	}
-
-	public void setUserDetails(UserDetails userDetails) {
-		this.userDetails = userDetails;
 	}
 
 	public int getEmployeeAccess() {

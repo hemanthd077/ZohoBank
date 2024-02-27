@@ -1,6 +1,6 @@
 package database.structureClasses;
 
-public class BankCustomerDetails extends UserDetails {
+public class BankCustomer extends BankUser {
 	private String panNumber;
 	private String aadharNumber;
 	

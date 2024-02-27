@@ -1,11 +1,11 @@
 package database.structureClasses;
 
-public class BankAccountDetails {
+public class BankAccount {
 	private Long accountNo;
 	private double balance;
 	private int status;
-	private BranchDetails branchDetails;
-	private UserDetails userDetails;
+	private BankBranch branchDetails;
+	private BankUser userDetails;
 	
 	public Long getAccountNo() {
 		return accountNo;
@@ -31,19 +31,19 @@ public class BankAccountDetails {
 		this.status = status;
 	}
 
-	public UserDetails getUserDetails() {
+	public BankUser getUserDetails() {
 		return userDetails;
 	}
 
-	public void setUserDetails(UserDetails userDetails) {
+	public void setUserDetails(BankUser userDetails) {
 		this.userDetails = userDetails;
 	}
 
-	public BranchDetails getBranchDetails() {
+	public BankBranch getBranchDetails() {
 		return branchDetails;
 	}
 
-	public void setBranchDetails(BranchDetails branchDetails) {
+	public void setBranchDetails(BankBranch branchDetails) {
 		this.branchDetails = branchDetails;
 	}
 	
