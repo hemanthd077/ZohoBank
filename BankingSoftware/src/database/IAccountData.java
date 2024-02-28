@@ -9,7 +9,7 @@ import database.structureClasses.BankTransaction;
 import database.structureClasses.BankBranch;
 import handleError.CustomException;
 
-public interface IBankAccount {
+public interface IAccountData {
 
 	public boolean createBankAccount(BankCustomer bankCustomerDetails,BankBranch branchDetails) throws CustomException;
 	

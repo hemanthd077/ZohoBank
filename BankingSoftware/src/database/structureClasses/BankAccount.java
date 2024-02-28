@@ -6,27 +6,27 @@ public class BankAccount {
 	private int status;
 	private BankBranch branchDetails;
 	private BankUser userDetails;
-	
+
 	public Long getAccountNo() {
 		return accountNo;
 	}
-	
+
 	public double getBalance() {
 		return balance;
 	}
-	
+
 	public int getStatus() {
 		return status;
 	}
-	
+
 	public void setAccountNo(Long accountNo) {
 		this.accountNo = accountNo;
 	}
-	
+
 	public void setBalance(double balance) {
 		this.balance = balance;
 	}
-	
+
 	public void setStatus(int status) {
 		this.status = status;
 	}
@@ -46,5 +46,5 @@ public class BankAccount {
 	public void setBranchDetails(BankBranch branchDetails) {
 		this.branchDetails = branchDetails;
 	}
-	
+
 }
