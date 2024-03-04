@@ -9,7 +9,9 @@ import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
 import database.structureClasses.BankBranch;
 import database.structureClasses.BankEmployee;
-import handleError.CustomException;
+import database.structureClasses.BankTransaction;
+import globalUtilities.CustomException;
+import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.UserHelper;
 import helper.enumFiles.ExceptionStatus;
@@ -19,10 +21,13 @@ public class AdminRunner extends BankRunner {
 
 	EmployeeHelper employeeHelper = null;
 	UserHelper userHelper = null;
+	CustomerHelper customerHelper = null;
 
 	public AdminRunner() throws CustomException {
 		try {
 			employeeHelper = new EmployeeHelper();
+			customerHelper = new CustomerHelper();
+			userHelper = new UserHelper();
 		} catch (CustomException e) {
 			e.printStackTrace();
 			throw new CustomException("Failed to fetch Employee Data", e);
@@ -30,8 +35,10 @@ public class AdminRunner extends BankRunner {
 	}
 
 	public void AdminRunnerTask() throws CustomException {
+		int userId = userHelper.getMyUserId();
 		logger.log(Level.FINEST, "result : Admin");
-		logger.log(Level.FINE, "Welcome " + employeeHelper.getMyData().getName() + " to BankOfZoho");
+		BankEmployee bankEmployee = employeeHelper.getMyData();
+		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
 		int adminChoice = 0;
 		boolean flag = true;
 
@@ -224,6 +231,67 @@ public class AdminRunner extends BankRunner {
 						flag = true;
 						while (flag) {
 							try {
+								logger.log(Level.INFO, "Select the User to get Account");
+								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+										.getActiveCustomerDetails();
+								;
+								avaliableUser(allcustomerDetails);
+								if (allcustomerDetails.size() > 0) {
+									int userChoice = scanner.nextInt();
+
+									BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
+									if (bankCustomerDetails == null) {
+										logger.log(Level.WARNING, "Invalid Input");
+										break;
+									}
+
+									logger.log(Level.INFO, "List of Accounts Avaliable : ");
+									Map<Integer, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+											List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+									availableAccount(allAccountDetails);
+									if (allAccountDetails.size() == 0) {
+										logger.log(Level.FINEST, "No Account Found for this User");
+									} else {
+										int accountChoice = scanner.nextInt();
+										BankAccount allAccount = allAccountDetails.get(accountChoice);
+										scanner.nextLine();
+										if (allAccount == null) {
+											logger.log(Level.WARNING, "Invalid Input");
+											continue;
+										}
+
+										logger.log(Level.INFO, "Enter the Last N Days to fetch Bank Statement");
+										int days = scanner.nextInt();
+										scanner.nextLine();
+
+										Map<Integer, BankTransaction> bankTransactionDetails = customerHelper
+												.getNDayTransactionDetails(allAccount, days);
+
+										if (bankTransactionDetails.size() > 0) {
+											logger.log(Level.FINE,
+													"---- Last " + days + " Days Transaction History ----");
+											logTransactionHistory(bankTransactionDetails);
+										} else {
+											logger.log(Level.FINEST, "No Transaction to Show");
+										}
+									}
+								} else {
+									logger.log(Level.FINEST, "No user found");
+								}
+								flag = false;
+							} catch (InputMismatchException e) {
+								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
+								scanner.nextLine();
+							} catch (CustomException e) {
+								logger.log(Level.SEVERE, e.getMessage());
+							}
+						}
+						break;
+					}
+					case 7: {
+						flag = true;
+						while (flag) {
+							try {
 								logger.log(Level.INFO, "Select the User to Block.");
 								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
 										.getActiveCustomerDetails();
@@ -269,13 +337,13 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 7: {
+					case 8: {
 						logger.log(Level.INFO, "\nList of Inactive User.");
 						Map<Integer, BankCustomer> allInactiveUser = employeeHelper.getInActiveUserDetails();
 						avaliableInactiveUser(allInactiveUser);
 						break;
 					}
-					case 8: {
+					case 9: {
 						flag = true;
 						while (flag) {
 							try {
@@ -306,7 +374,7 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 9: {
+					case 10: {
 						flag = true;
 						while (flag) {
 							try {
@@ -344,7 +412,7 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 10: {
+					case 11: {
 						flag = true;
 						while (flag) {
 							try {
@@ -370,7 +438,8 @@ public class AdminRunner extends BankRunner {
 									if (allAccountDetails.size() > 0) {
 										int accountchoice = scanner.nextInt();
 										scanner.nextLine();
-										if (employeeHelper.activateAccount(allAccountDetails.get(accountchoice))) {
+										BankAccount bankAccount = allAccountDetails.get(accountchoice);
+										if (employeeHelper.activateAccount(bankAccount)) {
 											logger.log(Level.FINEST, "User Account Activation Successfull");
 										} else {
 											logger.log(Level.FINEST, "User Account Activation failed");
@@ -391,11 +460,13 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 11: {
-						logger.log(Level.INFO, "\nShow My Profile.");
-						employeeDetails(employeeHelper.getMyData());
-					}
 					case 12: {
+						logger.log(Level.INFO, "\nShow My Profile.");
+						BankEmployee bankEmployee1 = employeeHelper.getMyData();
+						employeeDetails(Map.of(userId, bankEmployee1));
+						break;
+					}
+					case 13: {
 						flag = true;
 						while (flag) {
 							try {
@@ -430,8 +501,10 @@ public class AdminRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select the Branch to add");
 								Map<Integer, BankBranch> allBranchDetails = userHelper.getBranchData();
-								;
 								avaliableBranch(allBranchDetails);
+								if (allBranchDetails.size() == 0) {
+									break;
+								}
 								int branchChoice = scanner.nextInt();
 								scanner.nextLine();
 
@@ -441,13 +514,11 @@ public class AdminRunner extends BankRunner {
 									break;
 								}
 
-								employeeDetails.setBranchDetails(bankBranch);
-
-								if (employeeHelper.createEmployee(List.of(employeeDetails))) {
-									logger.log(Level.FINEST, "Created successfully");
-								} else {
-									logger.log(Level.FINEST, "User already exist or creation failed");
-								}
+//								if (employeeHelper.createEmployee(employeeDetails,bankBranch)) {
+//									logger.log(Level.FINEST, "Created successfully");
+//								} else {
+//									logger.log(Level.FINEST, "User already exist or creation failed");
+//								}
 								flag = false;
 							} catch (InputMismatchException e) {
 								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
@@ -458,26 +529,28 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 13: {
+					case 14: {
 						logger.log(Level.FINE, "The all Employee of the Bank");
 						Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper.getActiveEmployeeDetails();
 						;
 						logEmployeeDetails(allEmployeeDetails);
 						break;
 					}
-					case 14: {
+					case 15: {
 						flag = true;
 						while (flag) {
 							try {
 								logger.log(Level.INFO, "Select the User to Block");
 								Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper
 										.getActiveEmployeeDetails();
-								;
 								logEmployeeDetails(allEmployeeDetails);
+								if (allEmployeeDetails.size() == 0) {
+									break;
+								}
 								int userChoice = scanner.nextInt();
 								scanner.nextLine();
 
-								BankEmployee bankValidEmployee = allEmployeeDetails.get(userChoice);
+								BankEmployee bankValidEmployee = (BankEmployee) allEmployeeDetails.get(userChoice);
 								if (bankValidEmployee == null) {
 									logger.log(Level.WARNING, "Invalid Input");
 									break;
@@ -498,14 +571,14 @@ public class AdminRunner extends BankRunner {
 						}
 						break;
 					}
-					case 15: {
+					case 16: {
 						logger.log(Level.FINE, "The all Employee of the Bank");
 						Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper.getInActiveEmployeeDetails();
 						;
 						logEmployeeDetails(allEmployeeDetails);
 						break;
 					}
-					case 16: {
+					case 17: {
 						flag = true;
 						while (flag) {
 							try {
@@ -514,10 +587,13 @@ public class AdminRunner extends BankRunner {
 										.getInActiveEmployeeDetails();
 								;
 								logEmployeeDetails(allEmployeeDetails);
+								if (allEmployeeDetails.size() == 0) {
+									break;
+								}
 								int userChoice = scanner.nextInt();
 								scanner.nextLine();
 
-								BankEmployee bankInvalidEmployee = allEmployeeDetails.get(userChoice);
+								BankEmployee bankInvalidEmployee = (BankEmployee) allEmployeeDetails.get(userChoice);
 								if (bankInvalidEmployee == null) {
 									logger.log(Level.WARNING, "Invalid Input");
 									break;
@@ -551,13 +627,15 @@ public class AdminRunner extends BankRunner {
 	}
 
 	static void AdminChoicePage() {
-		logger.log(Level.INFO, "\n--- Admin Choice ---" + "\n1. Add Customer" + "\n2. Add Account to Customer"
-				+ "\n3. show all Customer" + "\n4. Delete the Customer" + "\n5. Show the Account of the Customer"
-				+ "\n6. Delete the Bank Account" + "\n7. Show all Inactive Customer"
-				+ "\n8. Activate the Blocked Customer" + "\n9. Show all Inactive Customer Bank Account"
-				+ "\n10. Activate Blocked Customer Bank Account" + "\n11. Show My Profile" + "\n12. Create Employee"
-				+ "\n13. Show All Active Employee" + "\n14. Delete Employee" + "\n15. Show All InActive Employee"
-				+ "\n16. Activate Blocked Employee" + "\nOther to Back");
+		logger.log(Level.INFO,
+				"\n--- Admin Choice ---" + "\n1. Add Customer" + "\n2. Add Account to Customer"
+						+ "\n3. show all Customer" + "\n4. Delete the Customer"
+						+ "\n5. Show the Account of the Customer" + "\n6. Show Custome Account Transaction."
+						+ "\n7. Delete the Bank Account" + "\n8. Show all Inactive Customer"
+						+ "\n9. Activate the Blocked Customer" + "\n10. Show all Inactive Customer Bank Account"
+						+ "\n11. Activate Blocked Customer Bank Account" + "\n12. Show My Profile"
+						+ "\n12. Create Employee" + "\n14. Show All Active Employee" + "\n15. Delete Employee"
+						+ "\n16. Show All InActive Employee" + "\n17. Activate Blocked Employee" + "\nOther to Back");
 	}
 
 	static void avaliableInactiveUser(Map<Integer, BankCustomer> mapUserDetails) throws CustomException {

@@ -1,4 +1,4 @@
-	package globalUtilities;
+package globalUtilities;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -10,11 +10,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Formatter;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import handleError.CustomException;
 
 public class GlobalChecker {
 	// null check
@@ -30,7 +29,6 @@ public class GlobalChecker {
 			checkNull(logger);
 			ColoredConsoleHandler coloredConsoleHandler = new ColoredConsoleHandler();
 			logger.addHandler(coloredConsoleHandler);
-
 			coloredConsoleHandler.setFormatter(new Formatter() {
 
 				@Override
@@ -39,6 +37,8 @@ public class GlobalChecker {
 					return record.getMessage();
 				}
 			});
+			logger.setLevel(Level.FINEST);
+			coloredConsoleHandler.setLevel(Level.FINEST);
 			logger.setUseParentHandlers(false);
 		} catch (SecurityException e) {
 			throw new CustomException("Error occured in loggerHandler", e);
@@ -58,7 +58,6 @@ public class GlobalChecker {
 				}
 				hexString.append(hex);
 			}
-			System.out.println("\n"+hexString.toString());
 			return hexString.toString();
 		} catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Error hashing password", e);
@@ -111,6 +110,7 @@ public class GlobalChecker {
 			long timestamp = System.currentTimeMillis();
 			int randomPart = new Random().nextInt(9000) + 1000;
 			accountNumber = String.valueOf(timestamp) + String.valueOf(randomPart);
+
 		} while (accountNumber.length() == 12);
 
 		return Long.parseLong(accountNumber);
@@ -127,4 +127,5 @@ public class GlobalChecker {
 			return false;
 		}
 	}
+	
 }

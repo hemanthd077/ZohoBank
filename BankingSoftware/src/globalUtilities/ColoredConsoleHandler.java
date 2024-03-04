@@ -26,13 +26,13 @@ public class ColoredConsoleHandler extends ConsoleHandler {
 			colorCode = "\u001B[36m"; // SkyBlueGreen
 			break;
 		case "FINEST":
-			colorCode = "\u001B[1;29m"; // white with bold
+			colorCode = "\u001B[1;29m";
 			break;
 		case "FINE":
-			colorCode = "\u001B[1;35m"; // white with bold
+			colorCode = "\u001B[1;35m";
 			break;
 		case "FINER":
-			colorCode = "\u001B[1;7;97m"; // white with bold
+			colorCode = "\u001B[1;7;97m";
 			break;
 		default:
 			colorCode = "\u001B[0m"; // Reset color

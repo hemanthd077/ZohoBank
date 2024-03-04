@@ -10,8 +10,8 @@ import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
 import database.structureClasses.BankTransaction;
 import database.structureClasses.BankUser;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 import helper.enumFiles.ExceptionStatus;
 import helper.enumFiles.PaymentType;
 import helper.enumFiles.StatusType;
@@ -48,100 +48,14 @@ public class CustomerHelper {
 		userHelper.validatePassword(userDetails);
 
 		bankAccountDetails.setStatus(1);
-		BankAccount accStatus = bankAccountDatabase.getAccountStatus(bankAccountDetails);
+		BankAccount accStatus = bankAccountDatabase.getAccountData(bankAccountDetails);
 
 		return accStatus.getBalance();
 	}
 
-	public int moneyTransaction(BankTransaction transactionDetails, BankAccount senderBankAccountDetails,
-			BankUser userDetails) throws CustomException {
-		GlobalChecker.checkNull(userDetails);
-		GlobalChecker.checkNull(senderBankAccountDetails);
-		GlobalChecker.checkNull(userDetails);
-
-		userHelper.validatePassword(userDetails);
-
-		double amount = transactionDetails.getAmount();
-		if (amount <= 0) {
-			throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());
-		}
-
-		senderBankAccountDetails.setStatus(1);
-		BankAccount senderAccStatus = bankAccountDatabase.getAccountStatus(senderBankAccountDetails);
-		long sAccNo = senderAccStatus.getAccountNo();
-		double sBalance = senderAccStatus.getBalance();
-
-		long rAccNo = 0L;
-		double rBalance = 0.0;
-
-		String transactionId = GlobalChecker.generateTransactionId();
-
-		int type = transactionDetails.getPaymentType();
-
-		if (type == 2 || type == 3) {
-			Map<String, Object> updateFieldMap = new HashMap<>();
-			updateFieldMap.put("BALANCE", type == 2 ? sBalance - amount : sBalance + amount);
-			if ((sBalance >= amount && type == 2) || (type == 3)) {
-				@SuppressWarnings("unused")
-				boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccStatus, updateFieldMap);
-				BankTransaction senderTransactionDetails = transactSetter(transactionId, senderAccStatus, amount, 0,
-						type, StatusType.ACTIVE.getCode());
-				if (bankAccountDatabase.transactionUpdate(senderTransactionDetails)) {
-					return 1;
-				} else {
-					failedTransaction(transactionId, senderAccStatus, amount, 0, type);
-					return 0;
-				}
-			} else {
-				failedTransaction(transactionId, senderAccStatus, amount, 0, type);
-				throw new CustomException(ExceptionStatus.INSUFFICIENTBALENCE.getStatus());
-			}
-		}
-
-		BankAccount receiverAccountDetails = new BankAccount();
-		receiverAccountDetails.setAccountNo(transactionDetails.getTransactorAccountNumber());
-		receiverAccountDetails.setStatus(1);
-
-		BankAccount receiverAccStatus = bankAccountDatabase.getAccountStatus(receiverAccountDetails);
-		if (receiverAccStatus.getAccountNo() == null) {
-			throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
-		}
-		rAccNo = receiverAccStatus.getAccountNo();
-		rBalance = receiverAccStatus.getBalance();
-		if (rAccNo != 0 && sAccNo != rAccNo) {
-			if (receiverAccStatus.getStatus() == 1 && receiverAccStatus.getStatus() == 1 && sBalance >= amount) {
-
-				Map<String, Object> senderFieldMap = new HashMap<>();
-				senderFieldMap.put("BALANCE", sBalance - amount);
-				boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccStatus, senderFieldMap);
-				BankTransaction senderTransactionDetails = transactSetter(transactionId, senderAccStatus, amount,
-						rAccNo, PaymentType.DEBIT.getCode(), StatusType.ACTIVE.getCode());
-
-				Map<String, Object> receiverFieldMap = new HashMap<>();
-				receiverFieldMap.put("BALANCE", (rBalance + amount));
-				boolean receiverUpdateResult = bankAccountDatabase.updateAccount(receiverAccStatus, receiverFieldMap);
-				BankTransaction receiverTransactionDetails = transactSetter(transactionId, receiverAccStatus, amount,
-						sAccNo, PaymentType.CREDIT.getCode(), StatusType.ACTIVE.getCode());
-
-				if (bankAccountDatabase.transactionUpdate(senderTransactionDetails)
-						&& bankAccountDatabase.transactionUpdate(receiverTransactionDetails) && receiverUpdateResult
-						&& senderUpdateResult) {
-					return 1;
-				} else {
-					failedTransaction(transactionId, senderAccStatus, amount, rAccNo, PaymentType.DEBIT.getCode());
-					return 0;
-				}
-			} else {
-				failedTransaction(transactionId, senderAccStatus, amount, rAccNo, PaymentType.DEBIT.getCode());
-				throw new CustomException(ExceptionStatus.INSUFFICIENTBALENCE.getStatus());
-			}
-		} else {
-			throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
-		}
-	}
-
 	public int withdrawTransaction(BankTransaction transactionDetails, BankAccount senderBankAccountDetails,
 			BankUser userDetails) throws CustomException {
+
 		GlobalChecker.checkNull(transactionDetails);
 
 		transactionDetails.setPaymentType(PaymentType.WITHDRAWAL.getCode());
@@ -153,44 +67,150 @@ public class CustomerHelper {
 		GlobalChecker.checkNull(transactionDetails);
 
 		transactionDetails.setPaymentType(PaymentType.DEPOSIT.getCode());
+
 		return moneyTransaction(transactionDetails, senderBankAccountDetails, userDetails);
 	}
 
-	private static BankTransaction transactSetter(String transactionId, BankAccount accStatus, double amount,
-			long transactAccNo, int type, int status) throws CustomException {
+	public int moneyTransaction(BankTransaction transactionDetails, BankAccount refAccount, BankUser userDetails)
+			throws CustomException {
+		transactInputNullCheck(transactionDetails, refAccount, userDetails);
+
+		userHelper.validatePassword(userDetails);
+
+		String transactionId = GlobalChecker.generateTransactionId();
+		int paymentType = transactionDetails.getPaymentType();
+
+		refAccount.setStatus(1);
+		BankAccount senderAccData = bankAccountDatabase.getAccountData(refAccount);
+
+		double amount = transactionDetails.getAmount();
+		long senderAccNo = senderAccData.getAccountNo();
+		double balance = senderAccData.getBalance();
+
+		Map<String, Object> updateFieldMap = new HashMap<>();
+		senderExceptionValidate(senderAccData, amount, balance, paymentType, transactionId);
+		if (paymentType == PaymentType.DEPOSIT.getCode() || paymentType == PaymentType.WITHDRAWAL.getCode()) {
+			updateFieldMap.put("BALANCE",
+					paymentType == PaymentType.DEPOSIT.getCode() ? balance + amount : balance - amount);
+
+			boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccData, updateFieldMap);
+			if (senderUpdateResult) {
+				boolean senderTransactionDetails = transactSetterAndStore(transactionId, senderAccData,
+						transactionDetails, StatusType.ACTIVE.getCode());
+				if (senderTransactionDetails) {
+					return 1;
+				}
+				transactSetterAndStore(transactionId, senderAccData, transactionDetails, StatusType.INACTIVE.getCode());
+				return 0;
+			} else {
+				updateFieldMap.put("BALANCE",
+						paymentType == PaymentType.DEPOSIT.getCode() ? balance - amount : balance + amount);
+				bankAccountDatabase.updateAccount(senderAccData, updateFieldMap);
+				return 0;
+			}
+
+		} else {
+			BankAccount receiverAccountDetails = new BankAccount();
+			receiverAccountDetails.setAccountNo(transactionDetails.getTransactorAccountNumber());
+			receiverAccountDetails.setStatus(1);
+			BankAccount receiverAccData = bankAccountDatabase.getAccountData(receiverAccountDetails);
+
+			try {
+				long receiverAccNo = receiverAccData.getAccountNo();
+				double rBalance = receiverAccData.getBalance();
+				if (senderAccNo == receiverAccNo) {
+					throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
+				}
+
+				updateFieldMap.put("BALANCE", balance - amount);
+				boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccData, updateFieldMap);
+				if (senderUpdateResult) {
+					transactionDetails.setPaymentType(PaymentType.DEBIT.getCode());
+					boolean senderTransactionDetails = transactSetterAndStore(transactionId, senderAccData,
+							transactionDetails, StatusType.ACTIVE.getCode());
+					if (senderTransactionDetails) {
+						updateFieldMap.put("BALANCE", rBalance + amount);
+						bankAccountDatabase.updateAccount(receiverAccData,
+								updateFieldMap);
+
+						transactionDetails.setPaymentType(PaymentType.CREDIT.getCode());
+						transactSetterAndStore(transactionId, receiverAccData,
+								transactionDetails, StatusType.ACTIVE.getCode());
+						return 1;
+					} else {
+						transactSetterAndStore(transactionId, senderAccData, transactionDetails,
+								StatusType.INACTIVE.getCode());
+						return 0;
+					}
+				} else {
+					updateFieldMap.put("BALANCE",
+							paymentType == PaymentType.DEPOSIT.getCode() ? balance - amount : balance + amount);
+					bankAccountDatabase.updateAccount(senderAccData, updateFieldMap);
+					return 0;
+				}
+			} catch (NullPointerException e) {
+				throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
+			}
+		}
+	}
+
+	private static void transactInputNullCheck(BankTransaction transactionDetails, BankAccount senderBankAccountDetails,
+			BankUser userDetails) throws CustomException {
+		GlobalChecker.checkNull(transactionDetails);
+		GlobalChecker.checkNull(senderBankAccountDetails);
+		GlobalChecker.checkNull(userDetails);
+	}
+
+	private static boolean transactSetterAndStore(String transactionId, BankAccount accStatus,
+			BankTransaction bankTransaction, int status) throws CustomException {
 
 		GlobalChecker.checkNull(accStatus);
 		GlobalChecker.checkNull(transactionId);
 
-		BankTransaction receiverTransactionDetails = new BankTransaction();
+		double amount = bankTransaction.getAmount();
 
-		amount = (type == 0 || type == 2) ? (0 - amount) : amount;
+		int type = bankTransaction.getPaymentType();
+		double currentAmount;
+		if(type == PaymentType.DEBIT.getCode() || type == PaymentType.WITHDRAWAL.getCode()) {
+			currentAmount = accStatus.getBalance()-amount;
+			amount = 0-amount;
+		}
+		else {
+			currentAmount = accStatus.getBalance()+amount;
+		}
+		BankTransaction transactionDetails = new BankTransaction();
+		transactionDetails.setTransactionId(transactionId);
+		transactionDetails.setTransactionTimestamp(GlobalChecker.getCurrentTimeMills());
+		transactionDetails.setUserId(accStatus.getUserId());
+		transactionDetails.setAccountNumber(accStatus.getAccountNo());
+		transactionDetails.setAmount(amount);
+		transactionDetails.setPaymentType(type);
+		transactionDetails.setCurrentBalance(currentAmount);
+		transactionDetails.setTransactorAccountNumber(bankTransaction.getTransactorAccountNumber());
+		transactionDetails.setDecription(bankTransaction.getDecription());
+		transactionDetails.setStatus(status);
 
-		receiverTransactionDetails.setTransactionId(transactionId);
-		receiverTransactionDetails.setTransactionTimestamp(GlobalChecker.getCurrentTimeMills());
-		receiverTransactionDetails.setUserId(accStatus.getUserDetails().getUserId());
-		receiverTransactionDetails.setAccountNumber(accStatus.getAccountNo());
-		receiverTransactionDetails.setAmount(amount);
-		receiverTransactionDetails.setPaymentType(type);
-		receiverTransactionDetails.setCurrentBalance(accStatus.getBalance() + amount);
-		receiverTransactionDetails.setTransactorAccountNumber(transactAccNo);
-		receiverTransactionDetails.setStatus(status);
-
-		return receiverTransactionDetails;
+		return bankAccountDatabase.storeTransaction(transactionDetails);
 	}
 
-	private void failedTransaction(String transactionId, BankAccount accStatus, double amount, long transactAccNo,
-			int type) throws CustomException {
-		GlobalChecker.checkNull(accStatus);
-		GlobalChecker.checkNull(transactionId);
-
-		BankTransaction failedTransaction = transactSetter(transactionId, accStatus, amount, transactAccNo, 1,
-				StatusType.INACTIVE.getCode());
-		failedTransaction.setCurrentBalance(failedTransaction.getCurrentBalance() - amount);
-		bankAccountDatabase.transactionUpdate(failedTransaction);
+	private static void senderExceptionValidate(BankAccount senderAcc, double amount, double balance, int paymentType,
+			String transactionId) throws CustomException {
+		if (amount <= 0) {
+			throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
+		}
+		if (paymentType != PaymentType.DEPOSIT.getCode() && amount > balance) {
+			throw new CustomException(ExceptionStatus.INSUFFICIENTBALENCE.getStatus());
+		}
 	}
 
-	public Map<Integer, BankTransaction> getTransactionDetails(BankAccount bankAccountDetails) throws CustomException {
-		return bankAccountDatabase.getTransactDetails(bankAccountDetails);
+	public Map<Integer, BankTransaction> getNDayTransactionDetails(BankAccount bankAccountDetails, int days)
+			throws CustomException {
+		GlobalChecker.checkNull(bankAccountDetails);
+		if (days < 1 || days > 365) {
+			throw new CustomException("Invalid Input");
+		}
+		long currentTimeMillis = GlobalChecker.getCurrentTimeMills();
+		Long timeStamp = currentTimeMillis - (days * 24L * 60L * 60L * 1000L);
+		return bankAccountDatabase.getTransactDetails(bankAccountDetails, days, timeStamp);
 	}
 }

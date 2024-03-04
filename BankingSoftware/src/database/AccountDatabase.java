@@ -12,9 +12,8 @@ import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
 import database.structureClasses.BankTransaction;
 import database.structureClasses.BankBranch;
-import database.structureClasses.BankUser;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 
 public class AccountDatabase implements IAccountData {
 
@@ -39,7 +38,7 @@ public class AccountDatabase implements IAccountData {
 
 			try (PreparedStatement accountInsertStatement = connection.prepareStatement(insertQueryUser)) {
 				accountInsertStatement.setLong(1, GlobalChecker.generateUniqueAccountNumber(10));
-				accountInsertStatement.setInt(2, branchDetails.getBranch_id());
+				accountInsertStatement.setInt(2, branchDetails.getBranchId());
 				accountInsertStatement.setInt(3, bankCustomerDetails.getUserId());
 
 				return accountInsertStatement.executeUpdate() != 0;
@@ -50,37 +49,18 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public Map<Integer, BankAccount> getAccountAllBranch(List<BankCustomer> bankCustomerDetails, int status)
-			throws CustomException {
-		GlobalChecker.checkNull(bankCustomerDetails);
-		GlobalChecker.checkNull(status);
-
-		String query = "SELECT Z.ACCOUNT_NO, Z.BALANCE, Z.STATUS, Z.BRANCH_ID, Z.USER_ID, B.* "
-				+ "FROM ZohoBankAccount Z " + "JOIN BranchData B ON Z.BRANCH_ID = B.BRANCH_ID "
-				+ "WHERE Z.USER_ID = ? AND Z.STATUS = ?";
-
-		return fetchingAccountData(bankCustomerDetails, status, query, 0);
-	}
-
-	@Override
-	public Map<Integer, BankAccount> getAccountSingleBranch(List<BankCustomer> bankCustomerDetails, int status,
+	public Map<Integer, BankAccount> getAccountWithBranch(List<BankCustomer> bankCustomerDetails, int status,
 			int branchId) throws CustomException {
 		GlobalChecker.checkNull(bankCustomerDetails);
 		GlobalChecker.checkNull(status);
 
 		String query = "SELECT Z.ACCOUNT_NO, Z.BALANCE, Z.STATUS, Z.BRANCH_ID, Z.USER_ID, B.* "
-				+ "FROM ZohoBankAccount Z " + "JOIN BranchData B ON Z.BRANCH_ID = B.BRANCH_ID "
+				+ "FROM ZohoBankAccount Z JOIN BranchData B ON Z.BRANCH_ID = B.BRANCH_ID "
 				+ "WHERE Z.USER_ID = ? AND Z.STATUS = ?";
 
-		if (branchId != 0) {
+		if (branchId != -1) {
 			query += " AND Z.BRANCH_ID = ?";
 		}
-
-		return fetchingAccountData(bankCustomerDetails, status, query, branchId);
-	}
-
-	private Map<Integer, BankAccount> fetchingAccountData(List<BankCustomer> bankCustomerDetails, int status,
-			String query, int branchId) throws CustomException {
 
 		Map<Integer, BankAccount> resultAccountData = new HashMap<>();
 		int listLength = bankCustomerDetails.size();
@@ -90,36 +70,34 @@ public class AccountDatabase implements IAccountData {
 			for (int i = 0; i < listLength; i++) {
 				getAccountStatement.setInt(1, bankCustomerDetails.get(i).getUserId());
 				getAccountStatement.setInt(2, status);
-				if (branchId != 0) {
+				if (branchId != -1) {
 					getAccountStatement.setInt(3, branchId);
 				}
 
 				try (ResultSet resultSet = getAccountStatement.executeQuery()) {
 
-					int id = 1;
+					int index = 1;
 					while (resultSet.next()) {
 						BankAccount bankAccountDetails = new BankAccount();
 						bankAccountDetails.setAccountNo(resultSet.getLong("ACCOUNT_NO"));
 						bankAccountDetails.setBalance(resultSet.getDouble("BALANCE"));
-
-						BankUser userDetails = new BankUser();
-						userDetails.setUserId(resultSet.getInt("USER_ID"));
-						bankAccountDetails.setUserDetails(userDetails);
+						bankAccountDetails.setUserId(resultSet.getInt("USER_ID"));
 
 						BankBranch branchDetails = new BankBranch();
 						branchDetails.setIfsc(resultSet.getString("IFSC"));
 						branchDetails.setCity(resultSet.getString("CITY"));
 						branchDetails.setState(resultSet.getString("STATE"));
 						branchDetails.setAddress(resultSet.getString("ADDRESS"));
+						bankAccountDetails.setBankBranch(branchDetails);
 
-						bankAccountDetails.setBranchDetails(branchDetails);
-						resultAccountData.put(id++, bankAccountDetails);
+						resultAccountData.put(index++, bankAccountDetails);
 					}
 				}
 			}
 		} catch (SQLException e) {
 			throw new CustomException("Error Occured in fetching the User Account : ", e);
 		}
+
 		return resultAccountData;
 	}
 
@@ -145,7 +123,7 @@ public class AccountDatabase implements IAccountData {
 							.prepareStatement(updateUserStatusQuery)) {
 						int resultValue = (updateResult == 0) ? 0 : 1;
 						updateUserStatusStatement.setInt(1, resultValue);
-						updateUserStatusStatement.setInt(2, bankAccountDetails.getUserDetails().getUserId());
+						updateUserStatusStatement.setInt(2, bankAccountDetails.getUserId());
 						updateUserStatusStatement.executeUpdate();
 					}
 				}
@@ -157,8 +135,9 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public BankAccount getAccountStatus(BankAccount bankAccountDetails) throws CustomException {
+	public BankAccount getAccountData(BankAccount bankAccountDetails) throws CustomException {
 		try {
+			GlobalChecker.checkNull(bankAccountDetails);
 			GlobalChecker.checkNull(bankAccountDetails);
 			String transactQuery = "SELECT * FROM ZohoBankAccount WHERE ACCOUNT_NO = ? AND STATUS = ?";
 
@@ -170,9 +149,8 @@ public class AccountDatabase implements IAccountData {
 
 				try (ResultSet resultSet = preparedStatement.executeQuery()) {
 					if (resultSet.next()) {
-						BankUser details = new BankUser();
-						details.setUserId(resultSet.getInt("USER_ID"));
-						resultAccountDetails.setUserDetails(details);
+
+						resultAccountDetails.setUserId(resultSet.getInt("USER_ID"));
 						resultAccountDetails.setAccountNo(resultSet.getLong("ACCOUNT_NO"));
 						resultAccountDetails.setBalance(resultSet.getDouble("BALANCE"));
 						resultAccountDetails.setStatus(resultSet.getInt("STATUS"));
@@ -186,7 +164,7 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public boolean transactionUpdate(BankTransaction bankTransactionDetails) throws CustomException {
+	public boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException {
 		try {
 			GlobalChecker.checkNull(bankTransactionDetails);
 
@@ -224,15 +202,18 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public Map<Integer, BankTransaction> getTransactDetails(BankAccount bankAccountDetails) throws CustomException {
+	public Map<Integer, BankTransaction> getTransactDetails(BankAccount bankAccountDetails, int days, Long timeStamp)
+			throws CustomException {
 		GlobalChecker.checkNull(bankAccountDetails);
 		try {
-			String getQuery = "SELECT * FROM BankTransaction WHERE ACCOUNT_NO = ? ;";
+			String getQuery = "SELECT * FROM BankTransaction WHERE ACCOUNT_NO = ? AND TRANS_TIMESTAMP >= ? ;";
 			Map<Integer, BankTransaction> transactionMap = new HashMap<>();
 
 			try (PreparedStatement fetchHistoryStatement = connection.prepareStatement(getQuery)) {
 				fetchHistoryStatement.setLong(1, bankAccountDetails.getAccountNo());
-
+				if (days != 0) {
+					fetchHistoryStatement.setLong(2, timeStamp);
+				}
 				try (ResultSet transactionSet = fetchHistoryStatement.executeQuery()) {
 					int index = 0;
 					while (transactionSet.next()) {

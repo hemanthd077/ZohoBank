@@ -7,18 +7,22 @@ import java.util.logging.Level;
 
 import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
-import handleError.CustomException;
+import database.structureClasses.BankEmployee;
+import globalUtilities.CustomException;
 import helper.EmployeeHelper;
+import helper.UserHelper;
 import helper.enumFiles.ExceptionStatus;
 import helper.enumFiles.StatusType;
 
 public class EmployeeRunner extends BankRunner {
 
 	EmployeeHelper employeeHelper = null;
+	UserHelper userHelper = null;
 
 	public EmployeeRunner() {
 		try {
 			employeeHelper = new EmployeeHelper();
+			userHelper = new UserHelper();
 		} catch (CustomException e) {
 			e.printStackTrace();
 		}
@@ -26,7 +30,9 @@ public class EmployeeRunner extends BankRunner {
 
 	public void EmployeeRunnerTask() throws CustomException {
 		logger.log(Level.FINEST, "result : Employee");
-		logger.log(Level.FINE, "Welcome " + employeeHelper.getMyData().getName() + " to BankOfZoho");
+		int userId = userHelper.getMyUserId();
+		BankEmployee bankEmployee = employeeHelper.getMyData();
+		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
 		int employeeChoice = 1;
 		boolean flag = true;
 		while (flag) {
@@ -275,7 +281,8 @@ public class EmployeeRunner extends BankRunner {
 									if (allAccountDetails.size() > 0) {
 										int accountchoice = scanner.nextInt();
 										scanner.nextLine();
-										if (employeeHelper.activateAccount(allAccountDetails.get(accountchoice))) {
+										BankAccount bankAccount = allAccountDetails.get(accountchoice);
+										if (employeeHelper.activateAccount(bankAccount)) {
 											logger.log(Level.FINEST, "Customer Account Activation Successfull");
 										} else {
 											logger.log(Level.WARNING, "Customer Account Activation failed");
@@ -298,7 +305,7 @@ public class EmployeeRunner extends BankRunner {
 					}
 					case 8: {
 						logger.log(Level.FINE, "---- My Profile ----");
-						employeeDetails(employeeHelper.getMyData());
+						employeeDetails(Map.of(userId, employeeHelper.getMyData()));
 						break;
 					}
 					}

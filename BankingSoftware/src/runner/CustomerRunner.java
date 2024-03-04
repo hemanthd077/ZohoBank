@@ -9,7 +9,7 @@ import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
 import database.structureClasses.BankTransaction;
 import database.structureClasses.BankUser;
-import handleError.CustomException;
+import globalUtilities.CustomException;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.enumFiles.ExceptionStatus;
@@ -53,6 +53,7 @@ public class CustomerRunner extends BankRunner {
 								double amount = scanner.nextDouble();
 								if (amount <= 0) {
 									logger.log(Level.WARNING, "Enter the Amount Greater than 0");
+									continue;
 								}
 								bankTransactionDetails.setAmount(amount);
 
@@ -66,11 +67,17 @@ public class CustomerRunner extends BankRunner {
 								int accountChoice = scanner.nextInt();
 								scanner.nextLine();
 
+								int size = allAccountDetails.size();
+
+								if (size < accountChoice || accountChoice < 1) {
+									logger.log(Level.WARNING, "Invalid Input");
+									continue;
+								}
+
 								BankAccount refAccount = allAccountDetails.get(accountChoice);
 
-								if (refAccount == null) {
-									logger.log(Level.WARNING, "Invalid Input");
-								}
+								logger.log(Level.INFO, "Enter the Description");
+								bankTransactionDetails.setDecription(scanner.nextLine());
 
 								logger.log(Level.INFO, "Enter the Password to send Amount");
 								userDetails.setPassword(scanner.nextLine());
@@ -102,11 +109,13 @@ public class CustomerRunner extends BankRunner {
 								int accountChoice = scanner.nextInt();
 								scanner.nextLine();
 
-								BankAccount allAccount = allAccountDetails.get(accountChoice);
-
-								if (allAccount == null) {
+								int size = allAccountDetails.size();
+								if (size < accountChoice || accountChoice < 1) {
 									logger.log(Level.WARNING, "Invalid Input");
+									continue;
 								}
+
+								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
 								logger.log(Level.INFO, "Enter the Password to check Balance");
 								userDetails.setPassword(scanner.nextLine());
@@ -134,17 +143,26 @@ public class CustomerRunner extends BankRunner {
 										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								int accountChoice = scanner.nextInt();
-								BankAccount allAccount = allAccountDetails.get(accountChoice);
-								scanner.nextLine();
-								if (allAccount == null) {
+
+								int size = allAccountDetails.size();
+
+								if (size < accountChoice || accountChoice < 1) {
 									logger.log(Level.WARNING, "Invalid Input");
+									continue;
 								}
 
+								BankAccount allAccount = allAccountDetails.get(accountChoice);
+								scanner.nextLine();
+
+								logger.log(Level.INFO, "Enter the Last N Days to fetch Bank Statement");
+								int days = scanner.nextInt();
+								scanner.nextLine();
+
 								Map<Integer, BankTransaction> bankTransactionDetails = customerHelper
-										.getTransactionDetails(allAccount);
+										.getNDayTransactionDetails(allAccount, days);
 
 								if (bankTransactionDetails.size() > 0) {
-									logger.log(Level.FINE, "---- Transaction History ----");
+									logger.log(Level.FINE, "---- Last " + days + " Days Transaction History ----");
 									logTransactionHistory(bankTransactionDetails);
 								} else {
 									logger.log(Level.FINEST, "No Transaction to Show");
@@ -178,6 +196,7 @@ public class CustomerRunner extends BankRunner {
 								double amount = scanner.nextDouble();
 								if (amount <= 0) {
 									logger.log(Level.WARNING, "Enter the Amount Greater than 0");
+									continue;
 								}
 								bankTransactionDetails.setAmount(amount);
 
@@ -188,11 +207,14 @@ public class CustomerRunner extends BankRunner {
 								int accountChoice = scanner.nextInt();
 								scanner.nextLine();
 
-								BankAccount allAccount = allAccountDetails.get(accountChoice);
+								int size = allAccountDetails.size();
 
-								if (allAccount == null) {
+								if (size < accountChoice || accountChoice < 1) {
 									logger.log(Level.WARNING, "Invalid Input");
+									continue;
 								}
+
+								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
 								logger.log(Level.INFO, "Enter the Password to withdraw");
 								userDetails.setPassword(scanner.nextLine());
@@ -211,6 +233,7 @@ public class CustomerRunner extends BankRunner {
 						break;
 					}
 					case 6: {
+						flag = true;
 						while (flag) {
 							try {
 								bankCustomerDetails = customerHelper.getCustomerData();
@@ -222,6 +245,7 @@ public class CustomerRunner extends BankRunner {
 								double amount = scanner.nextDouble();
 								if (amount <= 0) {
 									logger.log(Level.WARNING, "Enter the Amount Greater than 0");
+									continue;
 								}
 								bankTransactionDetails.setAmount(amount);
 
@@ -232,11 +256,14 @@ public class CustomerRunner extends BankRunner {
 								int accountChoice = scanner.nextInt();
 								scanner.nextLine();
 
-								BankAccount allAccount = allAccountDetails.get(accountChoice);
+								int size = allAccountDetails.size();
 
-								if (allAccount == null) {
+								if (size < accountChoice || accountChoice < 1) {
 									logger.log(Level.WARNING, "Invalid Input");
+									continue;
 								}
+
+								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
 								logger.log(Level.INFO, "Enter the Password to Deposit");
 								userDetails.setPassword(scanner.nextLine());
@@ -259,7 +286,7 @@ public class CustomerRunner extends BankRunner {
 						break;
 					}
 					}
-				} while (userChoice > 0 && userChoice < 8);
+				} while (userChoice > 0 && userChoice < 9);
 				logger.log(Level.WARNING, "Logged Out Successfully");
 				flag = false;
 			} catch (InputMismatchException e) {
@@ -273,51 +300,16 @@ public class CustomerRunner extends BankRunner {
 
 	static void CustomerChoicePage() {
 		logger.log(Level.FINE, "\n--- User Choice ---");
-		logger.log(Level.INFO, "1. Send Amount" + "\n2. Check Balance" + "\n3. Show Transaction History"
+		logger.log(Level.INFO, "1. Send Amount" + "\n2. Check Balance" + "\n3. Get Last N Day Transaction"
 				+ "\n4. My Profile" + "\n5. Withdraw" + "\n6. Deposit" + "\n7. Update Password" + "\nOther to LogOut");
 	}
 
 	static void logBankCustomerDetails(BankCustomer bankCustomerDetails) {
 		logger.log(Level.FINEST, "Customer Details: " + "\nName: " + bankCustomerDetails.getName() + "\nEmail: "
-				+ bankCustomerDetails.getEmail() + "\nPhone Number: " + bankCustomerDetails.getPhonenumber()
+				+ bankCustomerDetails.getEmail() + "\nPhone Number: " + bankCustomerDetails.getPhoneNumber()
 				+ "\nDate of Birth: " + bankCustomerDetails.getDateOfBirth() + "\nGender: "
 				+ bankCustomerDetails.getGender() + "\nAddress: " + bankCustomerDetails.getAddress() + "\nPAN Number: "
 				+ bankCustomerDetails.getPanNumber() + "\nAadhar Number: " + bankCustomerDetails.getAadharNumber());
-	}
-
-	public static void logTransactionHistory(Map<Integer, BankTransaction> transactionHistory) {
-
-		int size = transactionHistory.size();
-
-		for (int i = 0; i < size; i++) {
-			logger.log(Level.FINEST,
-					"\nTransaction ID: " + transactionHistory.get(i).getTransactionId() + "\nTransaction Timestamp: "
-							+ convertMillsToDateTime(transactionHistory.get(i).getTransactionTimestamp())
-							+ "\nAccount Number: " + transactionHistory.get(i).getAccountNumber() + "\nAmount: "
-							+ transactionHistory.get(i).getAmount());
-
-			int type = transactionHistory.get(i).getPaymentType();
-
-			if (type == 0) {
-				logger.log(Level.FINEST, "Type: Debit" + "\nTransactor Account Number: "
-						+ transactionHistory.get(i).getTransactorAccountNumber());
-			} else if (type == 1) {
-				logger.log(Level.FINEST, "Type: Credit" + "\nTransactor Account Number: "
-						+ transactionHistory.get(i).getTransactorAccountNumber());
-			} else if (type == 2) {
-				logger.log(Level.FINEST, "Type: Withdraw");
-			} else {
-				logger.log(Level.FINEST, "Type: Deposit");
-			}
-
-			logger.log(Level.FINEST, "Current Balance: " + transactionHistory.get(i).getCurrentBalance());
-
-			if (transactionHistory.get(i).getStatus() == 1) {
-				logger.log(Level.FINEST, "Status: Success");
-			} else {
-				logger.log(Level.FINEST, "Status: Failed");
-			}
-		}
 	}
 
 	public void paymentResultLog(int result) throws CustomException {

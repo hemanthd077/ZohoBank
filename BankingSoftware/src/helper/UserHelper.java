@@ -6,11 +6,12 @@ import java.util.Map;
 
 import database.IBranchData;
 import database.IUserData;
+import database.UserDatabase;
 import database.structureClasses.BankBranch;
 import database.structureClasses.BankEmployee;
 import database.structureClasses.BankUser;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 import helper.enumFiles.ExceptionStatus;
 
 public class UserHelper {
@@ -39,8 +40,19 @@ public class UserHelper {
 
 		try {
 			GlobalChecker.checkNull(userDetails);
+
 			userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
-			return userDatabase.userLogin(userDetails);
+			Map<String, Integer> loginResult = userDatabase.userLogin(userDetails);
+			if (loginResult.size() == 0) {
+				throw new CustomException("No Account Found");
+			}
+
+			if (loginResult.get("STATUS") == 0) {
+				return 0;
+			}
+			int userType = loginResult.get("USER_TYPE");
+			int access = loginResult.get("ACCESS");
+			return (userType == 1) ? 1 : ((userType == 2 && access == 1) ? 3 : 2);
 		} catch (CustomException e) {
 			throw new CustomException(e.getMessage(), e);
 		}
@@ -58,4 +70,7 @@ public class UserHelper {
 		throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());
 	}
 
+	public int getMyUserId() {
+		return UserDatabase.getUserId();
+	}
 }

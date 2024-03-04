@@ -1,7 +1,9 @@
 package runner;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
@@ -15,9 +17,10 @@ import database.structureClasses.BankAccount;
 import database.structureClasses.BankCustomer;
 import database.structureClasses.BankBranch;
 import database.structureClasses.BankEmployee;
+import database.structureClasses.BankTransaction;
 import database.structureClasses.BankUser;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 import helper.UserHelper;
 
 public class BankRunner {
@@ -25,8 +28,8 @@ public class BankRunner {
 	static Scanner scanner = new Scanner(System.in);
 
 	public static void main(String... args) {
-
 		UserHelper userHelper = null;
+		logger.setLevel(Level.FINEST);
 		try {
 			userHelper = new UserHelper();
 		} catch (CustomException e) {
@@ -40,8 +43,6 @@ public class BankRunner {
 			e.printStackTrace();
 		}
 
-		logger.setLevel(Level.ALL);
-
 		int choice = -1;
 		do {
 			try {
@@ -54,15 +55,15 @@ public class BankRunner {
 					BankUser userLoginDetails = new BankUser();
 					logger.log(Level.INFO, "Enter the Phone number to Login");
 
-						String phoneNo = scanner.nextLine();
-						validPhoneNumber(phoneNo);
-						userLoginDetails.setPhonenumber(phoneNo);
-						logger.log(Level.INFO,"Enter the Password");
-						String password = scanner.nextLine();
-						validPassword(password);
-						userLoginDetails.setPassword(password);	
+//					String phoneNo = scanner.nextLine();
+//					validPhoneNumber(phoneNo);
+//					userLoginDetails.setPhonenumber(phoneNo);
+//					logger.log(Level.INFO,"Enter the Password");
+//					String password = scanner.nextLine();
+//					validPassword(password);
+//					userLoginDetails.setPassword(password);	
 
-//						Admin login Credential //Hemanth
+//					Admin login Credential //Hemanth
 //					String phoneNo = "9876543210";
 //					validPhoneNumber(phoneNo);
 //					userLoginDetails.setPhonenumber(phoneNo);
@@ -71,47 +72,46 @@ public class BankRunner {
 //					validPassword(password);
 //					userLoginDetails.setPassword(password);
 //						
-//						customer Login 1 //Madhavan
-//						String phoneNo = "8901234567";
-//						validPhoneNumber(phoneNo);
-//						userLoginDetails.setPhonenumber(phoneNo);
-//						logger.log(Level.INFO,"Enter the Password");
-//						String password = "Madhavan@12345";
-//						validPassword(password);
-//						userLoginDetails.setPassword(password);
+//					customer Login 1 //Madhavan
+//					String phoneNo = "8901234567";
+//					validPhoneNumber(phoneNo);
+//					userLoginDetails.setPhonenumber(phoneNo);
+//					logger.log(Level.INFO,"Enter the Password");
+//					String password = "Madhavan@12345";
+//					validPassword(password);
+//					userLoginDetails.setPassword(password);
 
-//						customer Login 2 //Joshi
-//						String phoneNo = "9123456789";
-//						validPhoneNumber(phoneNo);
-//						userLoginDetails.setPhonenumber(phoneNo);
-//						logger.log(Level.INFO,"Enter the Password");
-//						String password = "Joshi@12345";
-//						validPassword(password);
-//						userLoginDetails.setPassword(password);
+//					customer Login 2 //Joshi
+					String phoneNo = "9123456789";
+					validPhoneNumber(phoneNo);
+					userLoginDetails.setPhonenumber(phoneNo);
+					logger.log(Level.INFO,"Enter the Password");
+					String password = "Joshi@12345";
+					validPassword(password);
+					userLoginDetails.setPassword(password);
 
-//						Employee Login 1 //Surya
-//						String phoneNo = "9087654321";
-//						validPhoneNumber(phoneNo);
-//						userLoginDetails.setPhonenumber(phoneNo);
-//						logger.log(Level.INFO,"Enter the Password");
-//						String password = "Surya@12345";
-//						validPassword(password);
-//						userLoginDetails.setPassword(password);
+//					Employee Login 1 //Surya
+//					String phoneNo = "9087654321";
+//					validPhoneNumber(phoneNo);
+//					userLoginDetails.setPhonenumber(phoneNo);
+//					logger.log(Level.INFO, "Enter the Password");
+//					String password = "Surya@12345";
+//					validPassword(password);
+//					userLoginDetails.setPassword(password);
 
-//						Customer Login 2 //Bharath
-//						String phoneNo = "7654321098";
-//						validPhoneNumber(phoneNo);
-//						userLoginDetails.setPhonenumber(phoneNo);
-//						logger.log(Level.INFO,"Enter the Password");
-//						String password = "Bharath@12345";
-//						validPassword(password);
-//						userLoginDetails.setPassword(password);
+//					Customer Login 2 //Bharath
+//					String phoneNo = "7654321098";
+//					validPhoneNumber(phoneNo);
+//					userLoginDetails.setPhonenumber(phoneNo);
+//					logger.log(Level.INFO,"Enter the Password");
+//					String password = "Bharath@12345";
+//					validPassword(password);
+//					userLoginDetails.setPassword(password);
 
 					int result = userHelper.userLogin(userLoginDetails);
 					switch (result) {
 					case 1: {
-						CustomerRunner customerRunner = new CustomerRunner();
-						customerRunner.CustomerRunnerTask();
+						new CustomerRunner().CustomerRunnerTask();
 						break;
 					}
 					case 2: {
@@ -132,6 +132,7 @@ public class BankRunner {
 				logger.log(Level.SEVERE, "Error in input Type");
 				scanner.nextLine();
 			} catch (CustomException e) {
+				e.printStackTrace();
 				logger.log(Level.SEVERE, e.getMessage(), e);
 			}
 		} while (choice != 0);
@@ -164,17 +165,13 @@ public class BankRunner {
 	static void availableAccount(Map<Integer, BankAccount> mapAccountDetails) throws CustomException {
 
 		logger.log(Level.FINEST, "Total no of Accounts : " + mapAccountDetails.size());
-		for (Map.Entry<Integer, BankAccount> entry : mapAccountDetails.entrySet()) {
-			int id = entry.getKey();
-			BankAccount branchAccountDetails = entry.getValue();
-			logger.log(Level.FINEST,
-					"Id : " + id + ",	Account Id : " + branchAccountDetails.getAccountNo() + ", Balance : "
-							+ branchAccountDetails.getBalance() + ", User Id : "
-							+ branchAccountDetails.getUserDetails().getUserId() + ", IFSC : "
-							+ branchAccountDetails.getBranchDetails().getIfsc() + ", City : "
-							+ branchAccountDetails.getBranchDetails().getCity() + ", State : "
-							+ branchAccountDetails.getBranchDetails().getState() + ", Address : "
-							+ branchAccountDetails.getBranchDetails().getAddress() + "\n");
+		for (Map.Entry<Integer, BankAccount> allBranchentry : mapAccountDetails.entrySet()) {
+			int id = allBranchentry.getKey();
+			BankAccount bankAccount = allBranchentry.getValue();
+			BankBranch bankBranch = bankAccount.getBankBranch();
+			logger.log(Level.FINEST, "Id : " + id + ",	Account No : " + bankAccount.getAccountNo() + ", Balance : "
+					+ bankAccount.getBalance() + ", IFSC : " + bankBranch.getIfsc() + ", City : " + bankBranch.getCity()
+					+ ", State : " + bankBranch.getState() + ", Address : " + bankBranch.getAddress() + "\n");
 		}
 	}
 
@@ -185,21 +182,26 @@ public class BankRunner {
 	}
 
 	static String convertMillsToDateTime(Long currentTimeMillis) {
-		Date date = new Date(currentTimeMillis);
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return dateFormat.format(date);
+		Instant instant = Instant.ofEpochMilli(currentTimeMillis);
+		LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd  hh:mm:ss");
+
+		return dateTime.format(dateTimeFormatter);
 	}
 
-	protected void employeeDetails(BankEmployee employeeDetails) {
-		logger.log(Level.FINEST,
-				"Email : " + employeeDetails.getEmail() + "\nPhone Number : " + employeeDetails.getPhonenumber()
-						+ "\nName : " + employeeDetails.getName() + "\nDate of Birth : "
-						+ employeeDetails.getDateOfBirth() + "\nGender : " + employeeDetails.getGender()
-						+ "\nAddress : " + employeeDetails.getAddress() + "\nBranch Details:" + "\nCity : "
-						+ employeeDetails.getBranchDetails().getCity() + "\nState : "
-						+ employeeDetails.getBranchDetails().getState() + "\nISFC : "
-						+ employeeDetails.getBranchDetails().getIfsc() + "\nBranch Address : "
-						+ employeeDetails.getBranchDetails().getAddress());
+	protected void employeeDetails(Map<Integer, BankEmployee> employeeDetails) {
+
+		for (Map.Entry<Integer, BankEmployee> allEmployeeEntry : employeeDetails.entrySet()) {
+			BankEmployee bankEmployee = allEmployeeEntry.getValue();
+
+			logger.log(Level.FINEST, "Email : " + bankEmployee.getEmail() + "\nPhone Number : "
+					+ bankEmployee.getPhoneNumber() + "\nName : " + bankEmployee.getName() + "\nDate of Birth : "
+					+ bankEmployee.getDateOfBirth() + "\nGender : " + bankEmployee.getGender() + "\nAddress : "
+					+ bankEmployee.getAddress() + "\nBranch Details:" + "\nCity : "
+					+ bankEmployee.getBankBranch().getCity() + "\nState : " + bankEmployee.getBankBranch().getState()
+					+ "\nISFC : " + bankEmployee.getBankBranch().getIfsc() + "\nBranch Address : "
+					+ bankEmployee.getBankBranch().getAddress());
+		}
 	}
 
 	protected static boolean isValidPassword(String password) {
@@ -241,8 +243,7 @@ public class BankRunner {
 				throw new CustomException("\nEnter the Valid Password");
 			}
 		} catch (CustomException e) {
-			logger.log(Level.WARNING,
-					"\nEnter the Valid Password\n");
+			logger.log(Level.WARNING, "\nEnter the Valid Password\n");
 			throw new CustomException(e.getMessage());
 		}
 	}
@@ -267,7 +268,7 @@ public class BankRunner {
 		}
 	}
 
-	public static void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails) {
+	public static <K, V> void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails) {
 
 		logger.log(Level.FINEST, "Total no of Employee : " + mapAccountDetails.size());
 		for (Map.Entry<Integer, BankEmployee> entry : mapAccountDetails.entrySet()) {
@@ -275,9 +276,9 @@ public class BankRunner {
 			BankEmployee employeeDetails = entry.getValue();
 			logger.log(Level.FINEST,
 					"\nEmployee no: " + id + "\nEmail: " + employeeDetails.getEmail() + "\nPhone Number: "
-							+ employeeDetails.getPhonenumber() + "\nName: " + employeeDetails.getName() + "\nGender: "
+							+ employeeDetails.getPhoneNumber() + "\nName: " + employeeDetails.getName() + "\nGender: "
 							+ employeeDetails.getGender() + "\nAddress: " + employeeDetails.getAddress()
-							+ "\nBranch ID: " + employeeDetails.getBranchDetails().getBranch_id());
+							+ "\nBranch ID: " + employeeDetails.getBankBranch().getBranchId());
 			int access = employeeDetails.getEmployeeAccess();
 			if (access == 1) {
 				logger.log(Level.FINEST, "Role: Admin");
@@ -285,6 +286,41 @@ public class BankRunner {
 				logger.log(Level.FINEST, "Role: Employee");
 			}
 
+		}
+	}
+
+	protected static void logTransactionHistory(Map<Integer, BankTransaction> transactionHistory) {
+
+		int size = transactionHistory.size();
+
+		for (int i = 0; i < size; i++) {
+			logger.log(Level.FINEST,
+					"\nTransaction ID: " + transactionHistory.get(i).getTransactionId() + "\nTransaction Timestamp: "
+							+ convertMillsToDateTime(transactionHistory.get(i).getTransactionTimestamp())
+							+ "\nAccount Number: " + transactionHistory.get(i).getAccountNumber() + "\nAmount: "
+							+ transactionHistory.get(i).getAmount());
+
+			int type = transactionHistory.get(i).getPaymentType();
+
+			if (type == 0) {
+				logger.log(Level.FINEST, "Type: Debit" + "\nTransactor Account Number: "
+						+ transactionHistory.get(i).getTransactorAccountNumber());
+			} else if (type == 1) {
+				logger.log(Level.FINEST, "Type: Credit" + "\nTransactor Account Number: "
+						+ transactionHistory.get(i).getTransactorAccountNumber());
+			} else if (type == 2) {
+				logger.log(Level.FINEST, "Type: Withdraw");
+			} else {
+				logger.log(Level.FINEST, "Type: Deposit");
+			}
+
+			logger.log(Level.FINEST, "Current Balance: " + transactionHistory.get(i).getCurrentBalance());
+
+			if (transactionHistory.get(i).getStatus() == 1) {
+				logger.log(Level.FINEST, "Status: Success");
+			} else {
+				logger.log(Level.FINEST, "Status: Failed");
+			}
 		}
 	}
 

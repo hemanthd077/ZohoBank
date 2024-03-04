@@ -1,11 +1,14 @@
 package database.structureClasses;
 
+import java.util.List;
+
 public class BankAccount {
 	private Long accountNo;
 	private double balance;
 	private int status;
-	private BankBranch branchDetails;
-	private BankUser userDetails;
+	private int userId;
+	private BankBranch bankBranch;
+	private List<BankTransaction> bankTransaction;
 
 	public Long getAccountNo() {
 		return accountNo;
@@ -24,27 +27,35 @@ public class BankAccount {
 	}
 
 	public void setBalance(double balance) {
-		this.balance = balance;
+		this.balance = Math.round(balance * 100.0)/100.0;
 	}
 
 	public void setStatus(int status) {
 		this.status = status;
 	}
 
-	public BankUser getUserDetails() {
-		return userDetails;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setUserDetails(BankUser userDetails) {
-		this.userDetails = userDetails;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 
-	public BankBranch getBranchDetails() {
-		return branchDetails;
+	public List<BankTransaction> getBankTransaction() {
+		return bankTransaction;
 	}
 
-	public void setBranchDetails(BankBranch branchDetails) {
-		this.branchDetails = branchDetails;
+	public void setBankTransaction(List<BankTransaction> bankTransaction) {
+		this.bankTransaction = bankTransaction;
+	}
+
+	public BankBranch getBankBranch() {
+		return bankBranch;
+	}
+
+	public void setBankBranch(BankBranch bankBranch) {
+		this.bankBranch = bankBranch;
 	}
 
 }

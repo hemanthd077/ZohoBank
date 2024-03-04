@@ -9,8 +9,8 @@ import java.util.Map;
 
 import database.structureClasses.BankBranch;
 import database.structureClasses.BankEmployee;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 
 public class EmployeeDatabase implements IEmployeeData {
 
@@ -25,19 +25,39 @@ public class EmployeeDatabase implements IEmployeeData {
 	}
 
 	@Override
-	public BankEmployee getEmployeeData() throws CustomException {
+	public Map<Integer, BankEmployee> getEmployeeData(int status, int userId, int access) throws CustomException {
 		try {
+			Map<Integer, BankEmployee> employeeMap = new HashMap<>();
 			String query = "SELECT U.*, B.*, Br.* " + "FROM ZohoBankUser U "
 					+ "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
-					+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID " + "WHERE U.USER_ID = ?";
+					+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID WHERE STATUS = ? ";
+			boolean accessStatus = access != -1;
+			boolean userIdStatus = userId != -1;
 
-			BankEmployee employeeDetails = new BankEmployee();
-			try (PreparedStatement loginStatement = connection.prepareStatement(query)) {
+			if (access != -1) {
+				query += " AND B.ACCESS = ?";
+			}
+			if (userId != -1) {
+				query += " AND U.USER_ID = ?";
+			}
+			try (PreparedStatement fetchStatement = connection.prepareStatement(query)) {
+				fetchStatement.setInt(1, status);
+				if (accessStatus && userIdStatus) {
+					fetchStatement.setInt(2, access);
+					fetchStatement.setInt(3, userId);
+				} else if (accessStatus) {
+					fetchStatement.setInt(2, access);
+				} else if (userIdStatus) {
+					fetchStatement.setInt(2, userId);
+				}
+				int empUserId;
+				try (ResultSet resultSet = fetchStatement.executeQuery()) {
+					while (resultSet.next()) {
 
-				loginStatement.setInt(1, UserDatabase.userId);
-				try (ResultSet resultSet = loginStatement.executeQuery()) {
-					if (resultSet.next()) {
-						employeeDetails.setEmail(resultSet.getString("Email"));
+						empUserId = resultSet.getInt("USER_ID");
+						BankEmployee employeeDetails = new BankEmployee();
+						employeeDetails.setUserId(empUserId);
+						employeeDetails.setEmail(resultSet.getString("EMAIL"));
 						employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 						employeeDetails.setName(resultSet.getString("NAME"));
 						if (GlobalChecker.columnExists(resultSet, "DOB")) {
@@ -45,54 +65,23 @@ public class EmployeeDatabase implements IEmployeeData {
 						}
 						employeeDetails.setGender(resultSet.getString("GENDER"));
 						employeeDetails.setAddress(resultSet.getString("ADDRESS"));
+						employeeDetails.setEmployeeAccess(resultSet.getInt("ACCESS"));
+
 						BankBranch branchDetails = new BankBranch();
 						branchDetails.setBranch_id(resultSet.getInt("BRANCH_ID"));
 						branchDetails.setCity(resultSet.getString("CITY"));
 						branchDetails.setIfsc(resultSet.getString("IFSC"));
 						branchDetails.setState(resultSet.getString("STATE"));
 						branchDetails.setAddress(resultSet.getString("ADDRESS"));
-						employeeDetails.setBranchDetails(branchDetails);
+						employeeDetails.setBankBranch(branchDetails);
+
+						employeeMap.put(empUserId, employeeDetails);
 					}
 				}
 			}
-			return employeeDetails;
+			return employeeMap;
 		} catch (SQLException e) {
 			throw new CustomException("Error occurred in the login process: ", e);
-		}
-	}
-
-	@Override
-	public Map<Integer, BankEmployee> getEmployeeDetails(int status) throws CustomException {
-		Map<Integer, BankEmployee> resultEmployeeData = new HashMap<>();
-
-		String Query = "SELECT * FROM ZohoBankUser U "
-				+ "JOIN BranchEmployee E ON U.USER_ID = E.EMP_ID where STATUS = ?;";
-		try {
-			try (PreparedStatement getBranchStatement = connection.prepareStatement(Query)) {
-				getBranchStatement.setInt(1, status);
-				try (ResultSet resultSet = getBranchStatement.executeQuery()) {
-
-					int id = 1;
-					while (resultSet.next()) {
-						BankEmployee employeeDetails = new BankEmployee();
-
-						employeeDetails.setUserId(resultSet.getInt("USER_ID"));
-						employeeDetails.setEmail(resultSet.getString("EMAIL"));
-						employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
-						employeeDetails.setName(resultSet.getString("NAME"));
-						employeeDetails.setGender(resultSet.getString("GENDER"));
-						employeeDetails.setAddress(resultSet.getString("ADDRESS"));
-						employeeDetails.setEmployeeAccess(resultSet.getInt("ACCESS"));
-						BankBranch branchDetails = new BankBranch();
-						branchDetails.setBranch_id(resultSet.getInt("BRANCH_ID"));
-						employeeDetails.setBranchDetails(branchDetails);
-						resultEmployeeData.put(id++, employeeDetails);
-					}
-				}
-			}
-			return resultEmployeeData;
-		} catch (SQLException e) {
-			throw new CustomException("Error occured while getting Branch Data", e);
 		}
 	}
 }

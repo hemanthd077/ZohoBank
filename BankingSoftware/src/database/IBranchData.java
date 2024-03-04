@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 import database.structureClasses.BankBranch;
-import handleError.CustomException;
+import globalUtilities.CustomException;
 
 public interface IBranchData {
 
-	public <T> Map<Integer, BankBranch> getBranchDetails(List<String> fieldList) throws CustomException;
+	public Map<Integer, BankBranch> getBranchDetails(List<String> fieldList) throws CustomException;
 }

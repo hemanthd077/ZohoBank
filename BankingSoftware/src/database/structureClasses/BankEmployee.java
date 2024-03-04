@@ -3,15 +3,7 @@ package database.structureClasses;
 public class BankEmployee extends BankUser {
 	private int employeeId;
 	private int employeeAccess;
-	private BankBranch branchDetails;
-
-	public BankBranch getBranchDetails() {
-		return branchDetails;
-	}
-
-	public void setBranchDetails(BankBranch branchDetails) {
-		this.branchDetails = branchDetails;
-	}
+	private BankBranch bankBranch;
 
 	public int getEmployeeAccess() {
 		return employeeAccess;
@@ -27,5 +19,13 @@ public class BankEmployee extends BankUser {
 
 	public void setEmployeeId(int employeeId) {
 		this.employeeId = employeeId;
+	}
+
+	public BankBranch getBankBranch() {
+		return bankBranch;
+	}
+
+	public void setBankBranch(BankBranch bankBranch) {
+		this.bankBranch = bankBranch;
 	}
 }

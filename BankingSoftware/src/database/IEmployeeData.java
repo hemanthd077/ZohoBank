@@ -3,11 +3,10 @@ package database;
 import java.util.Map;
 
 import database.structureClasses.BankEmployee;
-import handleError.CustomException;
+import globalUtilities.CustomException;
 
 public interface IEmployeeData {
 
-	public BankEmployee getEmployeeData() throws CustomException;
+	public Map<Integer, BankEmployee> getEmployeeData(int status, int UserId, int access) throws CustomException;
 
-	public Map<Integer, BankEmployee> getEmployeeDetails(int status) throws CustomException;
 }

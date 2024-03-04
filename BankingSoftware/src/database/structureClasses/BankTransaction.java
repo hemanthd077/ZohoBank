@@ -9,6 +9,7 @@ public class BankTransaction {
 	private int paymentType;
 	private double currentBalance;
 	private Long transactorAccountNumber;
+	private String decription;
 	private int status;
 
 	public String getTransactionId() {
@@ -56,11 +57,11 @@ public class BankTransaction {
 	}
 
 	public void setAmount(double amount) {
-		this.amount = amount;
+		this.amount = Math.round(amount *100.0)/100.0;
 	}
 
 	public void setCurrentBalance(double currentBalance) {
-		this.currentBalance = currentBalance;
+		this.currentBalance = Math.round(currentBalance *100.0)/100.0;
 	}
 
 	public void setTransactorAccountNumber(Long transactorAccountNumber) {
@@ -81,5 +82,13 @@ public class BankTransaction {
 
 	public void setPaymentType(int paymentType) {
 		this.paymentType = paymentType;
+	}
+
+	public String getDecription() {
+		return decription;
+	}
+
+	public void setDecription(String decription) {
+		this.decription = decription;
 	}
 }

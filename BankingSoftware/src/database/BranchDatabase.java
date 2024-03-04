@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import database.structureClasses.BankBranch;
+import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
-import handleError.CustomException;
 
 public class BranchDatabase implements IBranchData {
 
@@ -25,7 +25,7 @@ public class BranchDatabase implements IBranchData {
 	}
 
 	@Override
-	public <T> Map<Integer, BankBranch> getBranchDetails(List<String> fieldList) throws CustomException {
+	public Map<Integer, BankBranch> getBranchDetails(List<String> fieldList) throws CustomException {
 		String fields = GlobalChecker.stringToPattern(fieldList, ",");
 		Map<Integer, BankBranch> branchData = new HashMap<>();
 

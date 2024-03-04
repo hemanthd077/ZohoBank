@@ -1,14 +1,14 @@
 package database.structureClasses;
 
 public class BankBranch {
-	private int branch_id;
+	private int branchId;
 	private String ifsc;
 	private String address;
 	private String city;
 	private String state;
 
-	public int getBranch_id() {
-		return branch_id;
+	public int getBranchId() {
+		return branchId;
 	}
 
 	public String getIfsc() {
@@ -27,8 +27,8 @@ public class BankBranch {
 		return state;
 	}
 
-	public void setBranch_id(int branch_id) {
-		this.branch_id = branch_id;
+	public void setBranch_id(int branchId) {
+		this.branchId = branchId;
 	}
 
 	public void setIfsc(String ifsc) {

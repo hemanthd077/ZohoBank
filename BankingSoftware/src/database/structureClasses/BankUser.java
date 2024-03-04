@@ -2,9 +2,9 @@ package database.structureClasses;
 
 public class BankUser {
 	private int userId;
-	private String Email;
+	private String email;
 	private String password;
-	private String phonenumber;
+	private String phoneNumber;
 	private String name;
 	private String dateOfBirth;
 	private String gender;
@@ -15,15 +15,15 @@ public class BankUser {
 	}
 
 	public String getEmail() {
-		return Email;
+		return email;
 	}
 
 	public String getPassword() {
 		return password;
 	}
 
-	public String getPhonenumber() {
-		return phonenumber;
+	public String getPhoneNumber() {
+		return phoneNumber;
 	}
 
 	public String getName() {
@@ -47,15 +47,15 @@ public class BankUser {
 	}
 
 	public void setEmail(String email) {
-		Email = email;
+		this.email = email;
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
 	}
 
-	public void setPhonenumber(String phonenumber) {
-		this.phonenumber = phonenumber;
+	public void setPhonenumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
 	}
 
 	public void setName(String name) {
