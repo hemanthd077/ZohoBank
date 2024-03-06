@@ -8,32 +8,25 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
+import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import database.structure.BankUser;
+import database.structure.CurrentUser;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
+import globalUtilities.GlobalCommonChecker;
 
 public class UserDatabase implements IUserData {
-	static int userId;
-
-	public static int getUserId() {
-		return userId;
-	}
-
-	public void setUserId(int userId) {
-		UserDatabase.userId = userId;
-	}
 
 	@Override
-	public <T> boolean createUser(T userDetails, boolean isEmployee) throws CustomException {
+	public <T> boolean createUser(T userDetails, boolean employeeStatus) throws CustomException {
 		try {
-			GlobalChecker.checkNull(userDetails);
+			GlobalCommonChecker.checkNull(userDetails);
 
 			String insertQueryUser = "INSERT INTO ZohoBankUser(EMAIL, PASSWORD, PHONE_NO, NAME, GENDER, ADDRESS, USER_TYPE) VALUES(?,?,?,?,?,?,?)";
 			String insertQuerySpecific;
 
-			if (isEmployee) {
+			if (employeeStatus) {
 				insertQuerySpecific = "INSERT INTO BranchEmployee(EMP_ID, ACCESS, BRANCH_ID) VALUES(?,?,?)";
 			} else {
 				insertQuerySpecific = "INSERT INTO BankCustomer(CUSTOMER_ID, PAN, AADHAR) VALUES(?,?,?)";
@@ -50,14 +43,14 @@ public class UserDatabase implements IUserData {
 				insertStatementUser.setString(4, ((BankUser) userDetails).getName());
 				insertStatementUser.setString(5, ((BankUser) userDetails).getGender());
 				insertStatementUser.setString(6, ((BankUser) userDetails).getAddress());
-				insertStatementUser.setInt(7, isEmployee ? 2 : 1);
+				insertStatementUser.setInt(7, employeeStatus ? 2 : 1);
 				insertStatementUser.addBatch();
 				int[] userAccountResult = insertStatementUser.executeBatch();
 
 				try (ResultSet generatedKeys = insertStatementUser.getGeneratedKeys()) {
 					while (generatedKeys.next()) {
 						BankUser userDetailsSpecific = (BankUser) userDetails;
-						if (isEmployee) {
+						if (employeeStatus) {
 							insertStatementSpecific.setInt(1, generatedKeys.getInt(1));
 							insertStatementSpecific.setInt(2, ((BankEmployee) userDetailsSpecific).getEmployeeAccess());
 							insertStatementSpecific.setInt(3,
@@ -74,8 +67,8 @@ public class UserDatabase implements IUserData {
 
 				int[] specificAccountResult = insertStatementSpecific.executeBatch();
 
-				return GlobalChecker.checkElementsNonZero(userAccountResult)
-						&& GlobalChecker.checkElementsNonZero(specificAccountResult);
+				return CommonDatabaseUtil.checkElementsNonZero(userAccountResult)
+						&& CommonDatabaseUtil.checkElementsNonZero(specificAccountResult);
 			}
 		} catch (SQLException e) {
 			throw new CustomException("Exception occurred while creating user : ", e);
@@ -83,29 +76,24 @@ public class UserDatabase implements IUserData {
 	}
 
 	@Override
-	public Map<String, Integer> userLogin(String phoneNo, String password) throws CustomException {
+	public int userValidation(long checkUserId, String password) throws CustomException {
 		try {
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			GlobalChecker.checkNull(phoneNo);
-			GlobalChecker.checkNull(password);
+			GlobalCommonChecker.checkNull(password);
 
-			String query = "SELECT * FROM ZohoBankUser U " + "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
-					+ "WHERE U.PHONE_NO = ? AND PASSWORD = ?;";
+			String query = "SELECT * FROM ZohoBankUser WHERE USER_ID = ? AND PASSWORD = ? AND STATUS = ? ";
 
 			try (Connection connection = ConnectionCreation.getConnection();
 					PreparedStatement loginStatement = connection.prepareStatement(query)) {
 
-				loginStatement.setString(1, phoneNo);
+				loginStatement.setLong(1, checkUserId);
 				loginStatement.setString(2, password);
+				loginStatement.setInt(3, 1);
 				try (ResultSet resultSet = loginStatement.executeQuery()) {
 					if (resultSet.next()) {
-						map.put("STATUS", (resultSet.getInt("STATUS") == 0 ? 0 : 1));
-						setUserId(resultSet.getInt("USER_ID"));
-
-						map.put("ACCESS", resultSet.getInt("ACCESS"));
-						map.put("USER_TYPE", resultSet.getInt("USER_TYPE"));
+						CurrentUser.setUserId(checkUserId);
+						return resultSet.getInt("USER_TYPE");
 					}
-					return map;
+					return 0;
 				}
 			}
 		} catch (SQLException e) {
@@ -114,17 +102,38 @@ public class UserDatabase implements IUserData {
 	}
 
 	@Override
-	public <K, V, T> boolean updateUser(T customerDetails, Map<K, V> fieldAndValue) throws CustomException {
+	public boolean isAdmin(long checkUserId) throws CustomException {
 		try {
-			GlobalChecker.checkNull(fieldAndValue);
+			String query = "SELECT * FROM BranchEmployee WHERE EMP_ID = ? ";
 
-			String setFields = GlobalChecker.userUpdateQueryBuilder(fieldAndValue);
+			try (Connection connection = ConnectionCreation.getConnection();
+					PreparedStatement loginStatement = connection.prepareStatement(query)) {
+
+				loginStatement.setLong(1, checkUserId);
+				try (ResultSet resultSet = loginStatement.executeQuery()) {
+					if (resultSet.next()) {
+						int access = resultSet.getInt("ACCESS");
+						return access == 1;
+					}
+					return false;
+				}
+			}
+		} catch (SQLException e) {
+			throw new CustomException("Error occurred in the fetching Employee credentials: ", e);
+		}
+	}
+
+	@Override
+	public <K, V> boolean updateUser(long userId, Map<K, V> fieldAndValue) throws CustomException {
+		try {
+			GlobalCommonChecker.checkNull(fieldAndValue);
+
+			String setFields = CommonDatabaseUtil.userUpdateQueryBuilder(fieldAndValue);
 			String updateQuery = "update ZohoBankUser set " + setFields + " where USER_ID = ?";
 
 			try (Connection connection = ConnectionCreation.getConnection();
 					PreparedStatement updatePreparedStatement = connection.prepareStatement(updateQuery)) {
-				updatePreparedStatement.setInt(1, ((BankUser) customerDetails).getUserId());
-
+				updatePreparedStatement.setLong(1, userId);
 				return updatePreparedStatement.executeUpdate() != 0;
 			}
 		} catch (SQLException e) {
@@ -133,36 +142,11 @@ public class UserDatabase implements IUserData {
 	}
 
 	@Override
-	public boolean validatePassword(String password) throws CustomException {
-		try {
-			GlobalChecker.checkNull(password);
-
-			String validateQuery = "SELECT USER_ID FROM ZohoBankUser WHERE USER_ID = ? AND BINARY PASSWORD = ?;";
-
-			try (Connection connection = ConnectionCreation.getConnection();
-					PreparedStatement validateStatement = connection.prepareStatement(validateQuery)) {
-				validateStatement.setInt(1, UserDatabase.getUserId());
-				validateStatement.setString(2, password);
-
-				try (ResultSet resultSet = validateStatement.executeQuery()) {
-					if (resultSet.next()) {
-						return true;
-					} else {
-						return false;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw new CustomException("Error Occured while Validating Password", e);
-		}
-	}
-
-	@Override
-	public Map<Integer, BankCustomer> getUserDetails(int status, int limit, int offset) throws CustomException {
-		Map<Integer, BankCustomer> resultUserData = new HashMap<>();
+	public Map<Long, BankCustomer> getUserDetails(int status, int limit, int offset) throws CustomException {
+		Map<Long, BankCustomer> resultUserData = new HashMap<>();
 
 		String query = "SELECT * FROM ZohoBankUser U " + "JOIN BankCustomer C ON U.USER_ID = C.CUSTOMER_ID "
-				+ "WHERE STATUS = ? " + "LIMIT ? OFFSET ?";
+				+ "WHERE STATUS = ? LIMIT ? OFFSET ?";
 
 		try {
 			try (Connection connection = ConnectionCreation.getConnection();
@@ -174,7 +158,7 @@ public class UserDatabase implements IUserData {
 
 					while (resultSet.next()) {
 						BankCustomer bankCustomerDetails = new BankCustomer();
-						int userId = resultSet.getInt("USER_ID");
+						long userId = resultSet.getLong("USER_ID");
 						bankCustomerDetails.setUserId(userId);
 						bankCustomerDetails.setEmail(resultSet.getString("EMAIL"));
 						bankCustomerDetails.setPhonenumber(resultSet.getString("PHONE_NO"));

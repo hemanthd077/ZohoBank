@@ -5,11 +5,11 @@ import java.util.Map;
 
 import database.IBranchData;
 import database.IUserData;
-import database.UserDatabase;
 import database.structure.BankBranch;
 import database.structure.BankEmployee;
+import database.structure.CurrentUser;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
+import globalUtilities.GlobalCommonChecker;
 import helper.enumFiles.ExceptionStatus;
 
 public class UserHelper {
@@ -29,29 +29,31 @@ public class UserHelper {
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			throw new CustomException("Error Occured : Some Files Not Found ", e);
+			throw new CustomException(ExceptionStatus.FILENOTFOUNT.getStatus(), e);
 		}
 
 	}
 
-	public int userLogin(String phoneNo, String password) throws CustomException {
+	// return values -1 ->usernotFount 1 -> Customer 2->Employee 3->Admin
+	public int userLogin(long checkUserId, String password) throws CustomException {
 
 		try {
-			GlobalChecker.checkNull(phoneNo);
-			GlobalChecker.checkNull(password);
+			GlobalCommonChecker.checkNull(checkUserId);
+			GlobalCommonChecker.checkNull(password);
 
-			password = GlobalChecker.hashPassword(password);
-			Map<String, Integer> loginResult = userDatabase.userLogin(phoneNo, password);
-			if (loginResult.size() == 0) {
-				throw new CustomException("No Account Found");
+			password = GlobalCommonChecker.hashPassword(password);
+			int userType = userDatabase.userValidation(checkUserId, password);
+			if (userType == 0) {
+				throw new CustomException(ExceptionStatus.WRONGPASSWORD.getStatus());
+			} else if (userType == 1) {
+				return 1;
+			} else {
+				boolean employeeResult = userDatabase.isAdmin(checkUserId);
+				if (employeeResult) {
+					return 3;
+				}
+				return 2;
 			}
-
-			if (loginResult.get("STATUS") == 0) {
-				return 0;
-			}
-			int userType = loginResult.get("USER_TYPE");
-			int access = loginResult.get("ACCESS");
-			return (userType == 1) ? 1 : ((userType == 2 && access == 1) ? 3 : 2);
 		} catch (CustomException e) {
 			throw new CustomException(e.getMessage(), e);
 		}
@@ -62,14 +64,14 @@ public class UserHelper {
 	}
 
 	public boolean validatePassword(String password) throws CustomException {
-		password = GlobalChecker.hashPassword(password);
-		if (userDatabase.validatePassword(password)) {
+		password = GlobalCommonChecker.hashPassword(password);
+		if (userDatabase.userValidation(CurrentUser.getUserId(), password) != 0) {
 			return true;
 		}
 		throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());
 	}
 
-	public int getMyUserId() {
-		return UserDatabase.getUserId();
+	public long getMyUserId() {
+		return CurrentUser.getUserId();
 	}
 }

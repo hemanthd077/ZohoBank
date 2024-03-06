@@ -7,15 +7,13 @@ import globalUtilities.CustomException;
 
 public interface IUserData {
 
-	// return required key with value to find (userType)
-	public Map<String, Integer> userLogin(String phoneNo, String password) throws CustomException;
+	int userValidation(long checkUserId, String password) throws CustomException;
 
-	public boolean validatePassword(String password) throws CustomException;
+	<T> boolean createUser(T userDetails, boolean employeeStatus) throws CustomException;
 
-	<T> boolean createUser(T userDetails, boolean isEmployee) throws CustomException;
+	<K, V> boolean updateUser(long userId, Map<K, V> fieldAndValue) throws CustomException;
 
-	public <K, V, T> boolean updateUser(T customerDetails, Map<K, V> fieldAndValue) throws CustomException;
+	Map<Long, BankCustomer> getUserDetails(int status, int limit, int offset) throws CustomException;
 
-	public Map<Integer, BankCustomer> getUserDetails(int status, int limit, int offset) throws CustomException;
-
+	boolean isAdmin(long checkUserId) throws CustomException;
 }

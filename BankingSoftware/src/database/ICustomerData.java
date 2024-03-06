@@ -6,6 +6,6 @@ import globalUtilities.CustomException;
 public interface ICustomerData {
 
 	// get the Logged in CustomerData
-	public BankCustomer getCustomerData() throws CustomException;
+	BankCustomer getCustomerData() throws CustomException;
 
 }

@@ -7,6 +7,6 @@ import globalUtilities.CustomException;
 
 public interface IBranchData {
 
-	public Map<Integer, BankBranch> getBranchDetails() throws CustomException;
+	Map<Integer, BankBranch> getBranchDetails() throws CustomException;
 
 }

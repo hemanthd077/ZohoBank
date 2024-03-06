@@ -5,9 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankCustomer;
+import database.structure.CurrentUser;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
 
 public class CustomerDatabase implements ICustomerData {
 
@@ -21,15 +22,15 @@ public class CustomerDatabase implements ICustomerData {
 			try (Connection connection = ConnectionCreation.getConnection();
 					PreparedStatement loginStatement = connection.prepareStatement(query)) {
 
-				loginStatement.setInt(1, UserDatabase.userId);
+				loginStatement.setLong(1, CurrentUser.getUserId());
 				try (ResultSet resultSet = loginStatement.executeQuery()) {
 					if (resultSet.next()) {
 
-						bankCustomerDetails.setUserId(resultSet.getInt("USER_ID"));
+						bankCustomerDetails.setUserId(resultSet.getLong("USER_ID"));
 						bankCustomerDetails.setEmail(resultSet.getString("Email"));
 						bankCustomerDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 						bankCustomerDetails.setName(resultSet.getString("NAME"));
-						if (GlobalChecker.columnExists(resultSet, "DOB")) {
+						if (CommonDatabaseUtil.columnExists(resultSet, "DOB")) {
 							bankCustomerDetails.setDateOfBirth(resultSet.getLong("DOB"));
 						}
 						bankCustomerDetails.setGender(resultSet.getString("GENDER"));

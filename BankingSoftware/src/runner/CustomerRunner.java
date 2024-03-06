@@ -10,6 +10,7 @@ import database.structure.BankCustomer;
 import database.structure.BankTransaction;
 import database.structure.BankUser;
 import globalUtilities.CustomException;
+import globalUtilities.DateTimeUtils;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.enumFiles.ExceptionStatus;
@@ -113,7 +114,7 @@ public class CustomerRunner extends BankRunner {
 								}
 
 								BankAccount allAccount = allAccountDetails.get(accountChoice);
-								
+
 								logger.log(Level.INFO, "Enter the Password to check Balance");
 								userDetails.setPassword(scanner.nextLine());
 
@@ -210,10 +211,9 @@ public class CustomerRunner extends BankRunner {
 
 								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
-
 								logger.log(Level.INFO, "Enter the Description");
 								bankTransactionDetails.setDescription(scanner.nextLine());
-								
+
 								logger.log(Level.INFO, "Enter the Password to withdraw");
 								userDetails.setPassword(scanner.nextLine());
 
@@ -263,7 +263,7 @@ public class CustomerRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Enter the Description");
 								bankTransactionDetails.setDescription(scanner.nextLine());
-								
+
 								logger.log(Level.INFO, "Enter the Password to Deposit");
 								userDetails.setPassword(scanner.nextLine());
 
@@ -325,7 +325,17 @@ public class CustomerRunner extends BankRunner {
 						break;
 					}
 					case 8: {
-						logger.log(Level.WARNING, "Feature Coming Soon");
+						logger.log(Level.WARNING, "Enter the New Password");
+						String newPassword = scanner.nextLine();
+
+						logger.log(Level.WARNING, "Enter the Old Password");
+						String oldPassword = scanner.nextLine();
+
+						if (customerHelper.changeUserPassword(oldPassword, newPassword)) {
+							logger.log(Level.INFO, "Successfully Password Changed");
+						} else {
+							logger.log(Level.INFO, "Failed to Update the Password");
+						}
 						break;
 					}
 					}
@@ -336,6 +346,7 @@ public class CustomerRunner extends BankRunner {
 				logger.log(Level.SEVERE, "Input Miss Match Error");
 				scanner.nextLine();
 			} catch (CustomException e) {
+				e.printStackTrace();
 				logger.log(Level.SEVERE, e.getMessage());
 			}
 		}
@@ -350,11 +361,13 @@ public class CustomerRunner extends BankRunner {
 	}
 
 	static void logBankCustomerDetails(BankCustomer bankCustomerDetails) {
-		logger.log(Level.FINEST, "Customer Details: " + "\nName: " + bankCustomerDetails.getName() + "\nEmail: "
-				+ bankCustomerDetails.getEmail() + "\nPhone Number: " + bankCustomerDetails.getPhoneNumber()
-				+ "\nDate of Birth: " + convertMillsToDate(bankCustomerDetails.getDateOfBirth()) + "\nGender: "
-				+ bankCustomerDetails.getGender() + "\nAddress: " + bankCustomerDetails.getAddress() + "\nPAN Number: "
-				+ bankCustomerDetails.getPanNumber() + "\nAadhar Number: " + bankCustomerDetails.getAadharNumber());
+		logger.log(Level.FINEST,
+				"Customer Details: " + "\nName: " + bankCustomerDetails.getName() + "\nEmail: "
+						+ bankCustomerDetails.getEmail() + "\nPhone Number: " + bankCustomerDetails.getPhoneNumber()
+						+ "\nDate of Birth: " + DateTimeUtils.convertMillsToDate(bankCustomerDetails.getDateOfBirth())
+						+ "\nGender: " + bankCustomerDetails.getGender() + "\nAddress: "
+						+ bankCustomerDetails.getAddress() + "\nPAN Number: " + bankCustomerDetails.getPanNumber()
+						+ "\nAadhar Number: " + bankCustomerDetails.getAadharNumber());
 	}
 
 	public void paymentResultLog(int result) throws CustomException {

@@ -9,12 +9,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import database.dbutils.AccountUtils;
+import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
 import database.structure.BankTransaction;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
+import globalUtilities.GlobalCommonChecker;
 
 public class AccountDatabase implements IAccountData {
 
@@ -22,8 +24,8 @@ public class AccountDatabase implements IAccountData {
 	public boolean createBankAccount(BankCustomer bankCustomerDetails, BankBranch branchDetails, int accountType)
 			throws CustomException {
 		try {
-			GlobalChecker.checkNull(bankCustomerDetails);
-			GlobalChecker.checkNull(branchDetails);
+			GlobalCommonChecker.checkNull(bankCustomerDetails);
+			GlobalCommonChecker.checkNull(branchDetails);
 
 			if (isAccountAlreadyExists(bankCustomerDetails.getUserId(), branchDetails.getBranchId(), accountType)) {
 				throw new CustomException(
@@ -34,25 +36,24 @@ public class AccountDatabase implements IAccountData {
 
 			try (Connection connection = ConnectionCreation.getConnection();
 					PreparedStatement accountInsertStatement = connection.prepareStatement(insertQueryUser)) {
-				accountInsertStatement.setLong(1, GlobalChecker.generateUniqueAccountNumber(10));
+				accountInsertStatement.setLong(1, AccountUtils.generateUniqueAccountNumber(10));
 				accountInsertStatement.setInt(2, branchDetails.getBranchId());
-				accountInsertStatement.setInt(3, bankCustomerDetails.getUserId());
+				accountInsertStatement.setLong(3, bankCustomerDetails.getUserId());
 				accountInsertStatement.setInt(4, accountType);
 
 				return accountInsertStatement.executeUpdate() != 0;
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			throw new CustomException("Exception occured while creating user Account ", e);
 		}
 	}
 
-	private boolean isAccountAlreadyExists(int userId, int branchId, int accountType) throws CustomException {
+	private boolean isAccountAlreadyExists(long userId, int branchId, int accountType) throws CustomException {
 		String selectQuery = "SELECT COUNT(*) FROM ZohoBankAccount WHERE USER_ID = ? AND BRANCH_ID = ? AND ACCOUNT_TYPE = ?";
 
 		try (Connection connection = ConnectionCreation.getConnection();
 				PreparedStatement selectStatement = connection.prepareStatement(selectQuery)) {
-			selectStatement.setInt(1, userId);
+			selectStatement.setLong(1, userId);
 			selectStatement.setInt(2, branchId);
 			selectStatement.setInt(3, accountType);
 
@@ -67,21 +68,22 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public Map<Long, BankAccount> getAccountWithBranch(int userId, int status, int branchId) throws CustomException {
-		GlobalChecker.checkNull(status);
+	public Map<Long, BankAccount> getAccountWithBranch(long userId, int status, int branchId) throws CustomException {
+		GlobalCommonChecker.checkNull(status);
 
-		String query = "SELECT * FROM ZohoBankAccount Z JOIN BranchData B ON Z.BRANCH_ID = B.BRANCH_ID "
-				+ "WHERE Z.USER_ID = ? AND Z.STATUS = ?";
+		StringBuilder query = new StringBuilder();
+		query.append(
+				"SELECT * FROM ZohoBankAccount Z JOIN BranchData B ON Z.BRANCH_ID = B.BRANCH_ID WHERE Z.USER_ID = ? AND Z.STATUS = ?");
 
 		if (branchId != -1) {
-			query += " AND Z.BRANCH_ID = ?";
+			query.append(" AND Z.BRANCH_ID = ?");
 		}
 
 		Map<Long, BankAccount> resultAccountData = new HashMap<>();
 
 		try (Connection connection = ConnectionCreation.getConnection();
-				PreparedStatement getAccountStatement = connection.prepareStatement(query)) {
-			getAccountStatement.setInt(1, userId);
+				PreparedStatement getAccountStatement = connection.prepareStatement(query.toString())) {
+			getAccountStatement.setLong(1, userId);
 			getAccountStatement.setInt(2, status);
 			if (branchId != -1) {
 				getAccountStatement.setInt(3, branchId);
@@ -94,7 +96,7 @@ public class AccountDatabase implements IAccountData {
 					long accountNo = resultSet.getLong("ACCOUNT_NO");
 					bankAccountDetails.setAccountNo(accountNo);
 					bankAccountDetails.setBalance(resultSet.getDouble("BALANCE"));
-					bankAccountDetails.setUserId(resultSet.getInt("USER_ID"));
+					bankAccountDetails.setUserId(resultSet.getLong("USER_ID"));
 					bankAccountDetails.setAccountType(resultSet.getInt("ACCOUNT_TYPE"));
 
 					BankBranch branchDetails = new BankBranch();
@@ -115,13 +117,13 @@ public class AccountDatabase implements IAccountData {
 	}
 
 	@Override
-	public <K, V> boolean updateAccount(long accountNo, int userId, Map<K, V> fieldWithValue) throws CustomException {
+	public <K, V> boolean updateAccount(long accountNo, long userId, Map<K, V> fieldWithValue) throws CustomException {
 		try {
-			GlobalChecker.checkNull(fieldWithValue);
+			GlobalCommonChecker.checkNull(fieldWithValue);
 
-			String fieldSet = GlobalChecker.userUpdateQueryBuilder(fieldWithValue);
-			String updateQuery = "update ZohoBankAccount set " + fieldSet + " where ACCOUNT_NO = ?";
-			String updateUserStatusQuery = "UPDATE ZohoBankUser SET STATUS = ? WHERE USER_ID = ?";
+			String fieldSet = CommonDatabaseUtil.userUpdateQueryBuilder(fieldWithValue);
+			String updateQuery = "update ZohoBankAccount set " + fieldSet + " where ACCOUNT_NO = ? ";
+			String updateUserStatusQuery = "UPDATE ZohoBankUser SET STATUS = ? WHERE USER_ID = ? ";
 
 			try (Connection connection = ConnectionCreation.getConnection();
 					PreparedStatement updatePreparedStatement = connection.prepareStatement(updateQuery)) {
@@ -135,7 +137,7 @@ public class AccountDatabase implements IAccountData {
 							.prepareStatement(updateUserStatusQuery)) {
 						int resultValue = (updateResult == 0) ? 0 : 1;
 						updateUserStatusStatement.setInt(1, resultValue);
-						updateUserStatusStatement.setInt(2, userId);
+						updateUserStatusStatement.setLong(2, userId);
 						updateUserStatusStatement.executeUpdate();
 					}
 				}
@@ -161,7 +163,7 @@ public class AccountDatabase implements IAccountData {
 				try (ResultSet resultSet = preparedStatement.executeQuery()) {
 					if (resultSet.next()) {
 
-						resultAccountDetails.setUserId(resultSet.getInt("USER_ID"));
+						resultAccountDetails.setUserId(resultSet.getLong("USER_ID"));
 						resultAccountDetails.setAccountNo(resultSet.getLong("ACCOUNT_NO"));
 						resultAccountDetails.setBalance(resultSet.getDouble("BALANCE"));
 						resultAccountDetails.setStatus(resultSet.getInt("STATUS"));
@@ -179,7 +181,7 @@ public class AccountDatabase implements IAccountData {
 	@Override
 	public boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException {
 		try {
-			GlobalChecker.checkNull(bankTransactionDetails);
+			GlobalCommonChecker.checkNull(bankTransactionDetails);
 
 			Long transactorAccNo = bankTransactionDetails.getTransactorAccountNumber();
 			String transactQuery;
@@ -196,7 +198,7 @@ public class AccountDatabase implements IAccountData {
 					PreparedStatement insertTransactStatement = connection.prepareStatement(transactQuery)) {
 				insertTransactStatement.setString(1, bankTransactionDetails.getTransactionId());
 				insertTransactStatement.setLong(2, bankTransactionDetails.getTransactionTimestamp());
-				insertTransactStatement.setInt(3, bankTransactionDetails.getUserId());
+				insertTransactStatement.setLong(3, bankTransactionDetails.getUserId());
 				insertTransactStatement.setLong(4, bankTransactionDetails.getAccountNumber());
 				insertTransactStatement.setDouble(5, bankTransactionDetails.getAmount());
 				insertTransactStatement.setInt(6, bankTransactionDetails.getPaymentType());
@@ -236,6 +238,7 @@ public class AccountDatabase implements IAccountData {
 						transactionHistory.setTransactionTimestamp(transactionSet.getLong("TRANS_TIMESTAMP"));
 						transactionHistory.setAccountNumber(transactionSet.getLong("ACCOUNT_NO"));
 						transactionHistory.setAmount(transactionSet.getDouble("AMOUNT"));
+						transactionHistory.setUserId(transactionSet.getLong("USER_ID"));
 						transactionHistory.setPaymentType(transactionSet.getInt("TYPE"));
 						transactionHistory.setCurrentBalance(transactionSet.getDouble("RUNNING_BALANCE"));
 						transactionHistory.setStatus(transactionSet.getInt("STATUS"));

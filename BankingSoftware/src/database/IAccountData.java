@@ -16,11 +16,11 @@ public interface IAccountData {
 
 	boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException;
 
-	<K, V> boolean updateAccount(long accountNo, int userId, Map<K, V> fieldWithValue) throws CustomException;
+	<K, V> boolean updateAccount(long accountNo, long userId, Map<K, V> fieldWithValue) throws CustomException;
 
 	BankAccount getAccountData(long accountNo, int status) throws CustomException;
 
-	Map<Long, BankAccount> getAccountWithBranch(int userId, int status, int branchId) throws CustomException;
+	Map<Long, BankAccount> getAccountWithBranch(long userId, int status, int branchId) throws CustomException;
 
 	List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
 			throws CustomException;

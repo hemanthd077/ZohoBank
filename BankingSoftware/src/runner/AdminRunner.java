@@ -35,7 +35,7 @@ public class AdminRunner extends BankRunner {
 	}
 
 	public void AdminRunnerTask() throws CustomException {
-		int userId = userHelper.getMyUserId();
+		long userId = userHelper.getMyUserId();
 		logger.log(Level.FINEST, "result : Admin");
 		BankEmployee bankEmployee = employeeHelper.getMyData();
 		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
@@ -130,14 +130,14 @@ public class AdminRunner extends BankRunner {
 									continue;
 								}
 								int rowLimit = 5;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "\nSelect the user to Create Bank Account");
-									Map<Integer, BankCustomer> allUserDetails = employeeHelper
+									Map<Long, BankCustomer> allUserDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allUserDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -177,13 +177,13 @@ public class AdminRunner extends BankRunner {
 						logger.log(Level.FINE, "The Existing User of the Bank");
 						int rowLimit = 2;
 						int pageCount = 1;
-						int choice;
+						long choice;
 						do {
-							Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+							Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 									.getActiveCustomerDetails(rowLimit, pageCount);
 							avaliableUser(allcustomerDetails, pageCount);
 							logger.log(Level.INFO, "0. Next\n-1. Prev\n Other to Exit");
-							choice = scanner.nextInt();
+							choice = scanner.nextLong();
 							scanner.nextLine();
 							if (choice == 0) {
 								pageCount++;
@@ -202,14 +202,14 @@ public class AdminRunner extends BankRunner {
 							try {
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "Select the User to Block");
-									Map<Integer, BankCustomer> allUserDetails = employeeHelper
+									Map<Long, BankCustomer> allUserDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allUserDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -225,7 +225,7 @@ public class AdminRunner extends BankRunner {
 											break;
 										}
 
-										if (employeeHelper.deleteUser(bankCustomerDetails)) {
+										if (employeeHelper.deleteUser(bankCustomerDetails.getUserId())) {
 											logger.log(Level.FINEST, "Blocking of user Successfull");
 										} else {
 											logger.log(Level.FINEST, "Blocking of user failed");
@@ -251,13 +251,13 @@ public class AdminRunner extends BankRunner {
 								logger.log(Level.INFO, "Select the User to get Account");
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
-									Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+									Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allcustomerDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -304,14 +304,14 @@ public class AdminRunner extends BankRunner {
 							try {
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "Select the User to get Account");
-									Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+									Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allcustomerDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -382,14 +382,14 @@ public class AdminRunner extends BankRunner {
 								logger.log(Level.INFO, "Select the User to Block.");
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "Select the User to get Account");
-									Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+									Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allcustomerDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -445,7 +445,7 @@ public class AdminRunner extends BankRunner {
 						logger.log(Level.INFO, "\nList of Inactive User.");
 						int rowLimit = 5;
 						int pageCount = 1;
-						Map<Integer, BankCustomer> allInactiveUser = employeeHelper.getInActiveUserDetails(rowLimit,
+						Map<Long, BankCustomer> allInactiveUser = employeeHelper.getInActiveUserDetails(rowLimit,
 								pageCount);
 						avaliableInactiveUser(allInactiveUser);
 						break;
@@ -457,10 +457,10 @@ public class AdminRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "\nList of Inactive User.");
-								Map<Integer, BankCustomer> allInactiveUser = employeeHelper
+								Map<Long, BankCustomer> allInactiveUser = employeeHelper
 										.getInActiveUserDetails(rowLimit, pageCount);
 								avaliableInactiveUser(allInactiveUser);
-								int userChoice = scanner.nextInt();
+								long userChoice = scanner.nextLong();
 								scanner.nextLine();
 
 								BankCustomer bankInvalidUser = allInactiveUser.get(userChoice);
@@ -469,7 +469,7 @@ public class AdminRunner extends BankRunner {
 									break;
 								}
 
-								if (employeeHelper.activateUser(bankInvalidUser)) {
+								if (employeeHelper.activateUser(bankInvalidUser.getUserId())) {
 									logger.log(Level.FINEST, "UnBlocking of user Successfull");
 								} else {
 									logger.log(Level.FINEST, "UnBlocking of user failed");
@@ -490,14 +490,14 @@ public class AdminRunner extends BankRunner {
 							try {
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "\nSelect the User Bank Account.");
-									Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+									Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allcustomerDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -544,13 +544,13 @@ public class AdminRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "\nList of User Bank Account.");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
-										.getAllUserDetails(rowLimit, pageCount);
+								Map<Long, BankCustomer> allcustomerDetails = employeeHelper.getAllUserDetails(rowLimit,
+										pageCount);
 								;
 								avaliableUser(allcustomerDetails, pageCount);
 
 								if (allcustomerDetails.size() > 0) {
-									int userChoice = scanner.nextInt();
+									long userChoice = scanner.nextLong();
 
 									BankCustomer bankvalidCustomer = allcustomerDetails.get(userChoice);
 									if (bankvalidCustomer == null) {
@@ -665,7 +665,7 @@ public class AdminRunner extends BankRunner {
 						int pageCount = 1;
 						int choice;
 						do {
-							Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper
+							Map<Long, BankEmployee> allEmployeeDetails = employeeHelper
 									.getActiveEmployeeDetails(rowLimit, pageCount);
 							logEmployeeDetails(allEmployeeDetails, pageCount);
 							logger.log(Level.INFO, "0. Next\n-1. Prev\n Other to Exit");
@@ -689,13 +689,13 @@ public class AdminRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to Block");
-								Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper
+								Map<Long, BankEmployee> allEmployeeDetails = employeeHelper
 										.getActiveEmployeeDetails(rowLimit, pageCount);
 								logEmployeeDetails(allEmployeeDetails, pageCount);
 								if (allEmployeeDetails.size() == 0) {
 									break;
 								}
-								int userChoice = scanner.nextInt();
+								long userChoice = scanner.nextLong();
 								scanner.nextLine();
 
 								BankEmployee bankValidEmployee = allEmployeeDetails.get(userChoice);
@@ -704,7 +704,7 @@ public class AdminRunner extends BankRunner {
 									break;
 								}
 
-								if (employeeHelper.deleteUser(bankValidEmployee)) {
+								if (employeeHelper.deleteUser(bankValidEmployee.getUserId())) {
 									logger.log(Level.FINEST, "Blocking of user Successfull");
 								} else {
 									logger.log(Level.FINEST, "Blocking of user failed");
@@ -725,7 +725,7 @@ public class AdminRunner extends BankRunner {
 						int pageCount = 1;
 						int choice;
 						do {
-							Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper
+							Map<Long, BankEmployee> allEmployeeDetails = employeeHelper
 									.getInActiveEmployeeDetails(rowLimit, pageCount);
 							logEmployeeDetails(allEmployeeDetails, pageCount);
 							logger.log(Level.INFO, "0. Next\n-1. Prev\n Other to Exit");
@@ -749,14 +749,14 @@ public class AdminRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to UnBlock");
-								Map<Integer, BankEmployee> allEmployeeDetails = employeeHelper
+								Map<Long, BankEmployee> allEmployeeDetails = employeeHelper
 										.getInActiveEmployeeDetails(rowLimit, pageCount);
 								;
 								logEmployeeDetails(allEmployeeDetails, pageCount);
 								if (allEmployeeDetails.size() == 0) {
 									break;
 								}
-								int userChoice = scanner.nextInt();
+								long userChoice = scanner.nextLong();
 								scanner.nextLine();
 
 								BankEmployee bankInvalidEmployee = allEmployeeDetails.get(userChoice);
@@ -765,7 +765,7 @@ public class AdminRunner extends BankRunner {
 									break;
 								}
 
-								if (employeeHelper.activateUser(bankInvalidEmployee)) {
+								if (employeeHelper.activateUser(bankInvalidEmployee.getUserId())) {
 									logger.log(Level.FINEST, "Blocking of user Successfull");
 								} else {
 									logger.log(Level.FINEST, "Blocking of user failed");
@@ -804,12 +804,12 @@ public class AdminRunner extends BankRunner {
 						+ "\n16. Show All InActive Employee" + "\n17. Activate Blocked Employee" + "\nOther to Back");
 	}
 
-	static void avaliableInactiveUser(Map<Integer, BankCustomer> mapUserDetails) throws CustomException {
+	static void avaliableInactiveUser(Map<Long, BankCustomer> mapUserDetails) throws CustomException {
 
 		logger.log(Level.FINE, "Total no of Users :" + mapUserDetails.size());
 
-		for (Map.Entry<Integer, BankCustomer> entry : mapUserDetails.entrySet()) {
-			Integer userId = entry.getKey();
+		for (Map.Entry<Long, BankCustomer> entry : mapUserDetails.entrySet()) {
+			long userId = entry.getKey();
 			BankCustomer branchDetails = entry.getValue();
 			logger.log(Level.FINEST,
 					" " + userId + " : " + branchDetails.getName() + " , Address,  : " + branchDetails.getAddress());

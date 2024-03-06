@@ -1,26 +1,22 @@
 package runner;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import database.structure.BankTransaction;
 import database.structure.BankUser;
+import database.structure.CurrentUser;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
+import globalUtilities.DateTimeUtils;
+import globalUtilities.GlobalCommonChecker;
+import globalUtilities.InputValidationUtil;
 import helper.UserHelper;
 
 public class BankRunner {
@@ -38,7 +34,7 @@ public class BankRunner {
 		}
 
 		try {
-			GlobalChecker.loggerHandler();
+			GlobalCommonChecker.loggerHandler();
 		} catch (CustomException e) {
 			e.printStackTrace();
 		}
@@ -53,63 +49,51 @@ public class BankRunner {
 				case 1: {
 					logger.log(Level.INFO, "----- Login Here -----");
 					BankUser userLoginDetails = new BankUser();
-					logger.log(Level.INFO, "Enter the Phone number to Login");
+					logger.log(Level.INFO, "Enter the User ID  to Login");
 
-//					String phoneNo = scanner.nextLine();
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
-//					logger.log(Level.INFO,"Enter the Password");
-//					String password = scanner.nextLine();
-//					validPassword(password);
-//					userLoginDetails.setPassword(password);	
+					long userId = scanner.nextLong();
+					scanner.nextLine();
+					userLoginDetails.setUserId(userId);
+					logger.log(Level.INFO, "Enter the Password");
+					String password = scanner.nextLine();
+					userLoginDetails.setPassword(password);
 
 //					Admin login Credential //Hemanth
-//					String phoneNo = "9876543210";
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
+//					int userId = 1;
+//					userLoginDetails.setUserId(userId);
 //					logger.log(Level.INFO, "Enter the Password");
 //					String password = "Hem@12345";
-//					validPassword(password);
 //					userLoginDetails.setPassword(password);
 //						
 //					customer Login 1 //Madhavan
-					String phoneNo = "8901234567";
-					validPhoneNumber(phoneNo);
-					userLoginDetails.setPhonenumber(phoneNo);
-					logger.log(Level.INFO,"Enter the Password");
-					String password = "Madhavan@12345";
-					validPassword(password);
-					userLoginDetails.setPassword(password);
+//					long userId = 2;
+//					userLoginDetails.setUserId(userId);
+//					logger.log(Level.INFO,"Enter the Password");
+//					String password = "Madhavan@12345";
+//					userLoginDetails.setPassword(password);
 
 //					customer Login 2 //Joshi
-//					String phoneNo = "9123456789";
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
+//					long userId = 3;
+//					userLoginDetails.setUserId(userId);
 //					logger.log(Level.INFO, "Enter the Password");
 //					String password = "Joshi@12345";
-//					validPassword(password);
 //					userLoginDetails.setPassword(password);
 
 //					Employee Login 1 //Surya
-//					String phoneNo = "9087654321";
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
+//					long userId = 4;
+//					userLoginDetails.setUserId(userId);
 //					logger.log(Level.INFO, "Enter the Password");
 //					String password = "Surya@12345";
-//					validPassword(password);
 //					userLoginDetails.setPassword(password);
 
 //					Customer Login 2 //Bharath
-//					String phoneNo = "7654321098";
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
+//					long userId = 5;
+//					userLoginDetails.setUserId(userId);
 //					logger.log(Level.INFO,"Enter the Password");
 //					String password = "Bharath@12345";
-//					validPassword(password);
 //					userLoginDetails.setPassword(password);
 
-					int result = userHelper.userLogin(userLoginDetails.getPhoneNumber(),
-							userLoginDetails.getPassword());
+					int result = userHelper.userLogin(userLoginDetails.getUserId(), userLoginDetails.getPassword());
 					switch (result) {
 					case 1: {
 						new CustomerRunner().CustomerRunnerTask();
@@ -129,11 +113,12 @@ public class BankRunner {
 					break;
 				}
 				}
+
+				CurrentUser.clearUserData();
 			} catch (InputMismatchException e) {
 				logger.log(Level.SEVERE, "Error in input Type");
 				scanner.nextLine();
 			} catch (CustomException e) {
-				e.printStackTrace();
 				logger.log(Level.SEVERE, e.getMessage(), e);
 			}
 		} while (choice != 0);
@@ -151,11 +136,11 @@ public class BankRunner {
 		}
 	}
 
-	static void avaliableUser(Map<Integer, BankCustomer> mapUserDetails, int pageCount) throws CustomException {
+	static void avaliableUser(Map<Long, BankCustomer> mapUserDetails, int pageCount) throws CustomException {
 
 		logger.log(Level.FINEST, "Page :" + pageCount);
-		for (Map.Entry<Integer, BankCustomer> entry : mapUserDetails.entrySet()) {
-			Integer userId = entry.getKey();
+		for (Map.Entry<Long, BankCustomer> entry : mapUserDetails.entrySet()) {
+			long userId = entry.getKey();
 			BankCustomer branchDetails = entry.getValue();
 			logger.log(Level.FINEST,
 					" " + userId + " : " + branchDetails.getName() + " , Address,  : " + branchDetails.getAddress());
@@ -192,73 +177,25 @@ public class BankRunner {
 		logger.log(Level.INFO, "0. Close the Application");
 	}
 
-	static String convertMillsToDateTime(Long currentTimeMillis) {
-		Instant instant = Instant.ofEpochMilli(currentTimeMillis);
-		LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd  hh:mm:ss");
+	protected void employeeDetails(Map<Long, BankEmployee> employeeDetails) {
 
-		return dateTime.format(dateTimeFormatter);
-	}
-	
-	static String convertMillsToDate(Long currentTimeMillis) {
-		Instant instant = Instant.ofEpochMilli(currentTimeMillis);
-		LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd");
-
-		return dateTime.format(dateTimeFormatter);
-	}
-
-	protected void employeeDetails(Map<Integer, BankEmployee> employeeDetails) {
-
-		for (Map.Entry<Integer, BankEmployee> allEmployeeEntry : employeeDetails.entrySet()) {
+		for (Map.Entry<Long, BankEmployee> allEmployeeEntry : employeeDetails.entrySet()) {
 			BankEmployee bankEmployee = allEmployeeEntry.getValue();
+			long date = bankEmployee.getDateOfBirth();
 
 			logger.log(Level.FINEST, "Email : " + bankEmployee.getEmail() + "\nPhone Number : "
 					+ bankEmployee.getPhoneNumber() + "\nName : " + bankEmployee.getName() + "\nDate of Birth : "
-					+ bankEmployee.getDateOfBirth() + "\nGender : " + bankEmployee.getGender() + "\nAddress : "
-					+ bankEmployee.getAddress() + "\nBranch Details:" + "\nCity : "
-					+ bankEmployee.getBankBranch().getCity() + "\nState : " + bankEmployee.getBankBranch().getState()
-					+ "\nISFC : " + bankEmployee.getBankBranch().getIfsc() + "\nBranch Address : "
-					+ bankEmployee.getBankBranch().getAddress());
+					+ (date != 0 ? DateTimeUtils.convertMillsToDate(bankEmployee.getDateOfBirth()) : "") + "\nGender : "
+					+ bankEmployee.getGender() + "\nAddress : " + bankEmployee.getAddress() + "\nBranch Details:"
+					+ "\nCity : " + bankEmployee.getBankBranch().getCity() + "\nState : "
+					+ bankEmployee.getBankBranch().getState() + "\nISFC : " + bankEmployee.getBankBranch().getIfsc()
+					+ "\nBranch Address : " + bankEmployee.getBankBranch().getAddress());
 		}
-	}
-
-	protected static boolean isValidPassword(String password) {
-		if (password == null) {
-			return false;
-		}
-		String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{" + 8 + ",}$";
-		Pattern pattern = Pattern.compile(regex);
-		return pattern.matcher(password).matches();
-	}
-
-	public static boolean isValidEmail(String email) {
-		if (email == null) {
-			return false;
-		}
-
-		String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-		Pattern pattern = Pattern.compile(emailRegex);
-		Matcher matcher = pattern.matcher(email);
-
-		return matcher.matches();
-	}
-
-	public static boolean isValidIndianPhoneNumber(String phoneNumber) {
-		if (phoneNumber == null) {
-			return false;
-		}
-		String indianPhoneNumberRegex = "^(\\+91[\\-\\s]?)?[0]?[6789]\\d{9}$";
-
-		Pattern pattern = Pattern.compile(indianPhoneNumberRegex);
-		Matcher matcher = pattern.matcher(phoneNumber);
-
-		return matcher.matches();
 	}
 
 	public static void validPassword(String password) throws CustomException {
 		try {
-			if (!isValidPassword(password)) {
+			if (!InputValidationUtil.isValidPassword(password)) {
 				throw new CustomException("\nEnter the Valid Password");
 			}
 		} catch (CustomException e) {
@@ -269,7 +206,7 @@ public class BankRunner {
 
 	public static void validEmail(String email) throws CustomException {
 		try {
-			if (!isValidEmail(email)) {
+			if (!InputValidationUtil.isValidEmail(email)) {
 				throw new CustomException("\nEnter the Valid Email");
 			}
 		} catch (CustomException e) {
@@ -279,7 +216,7 @@ public class BankRunner {
 
 	public static void validPhoneNumber(String phoneNumber) throws CustomException {
 		try {
-			if (!isValidIndianPhoneNumber(phoneNumber)) {
+			if (!InputValidationUtil.isValidIndianPhoneNumber(phoneNumber)) {
 				throw new CustomException("Enter the Valid Phone number");
 			}
 		} catch (CustomException e) {
@@ -287,11 +224,11 @@ public class BankRunner {
 		}
 	}
 
-	public static <K, V> void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails, int pageCount) {
+	public static <K, V> void logEmployeeDetails(Map<Long, BankEmployee> mapAccountDetails, int pageCount) {
 
 		logger.log(Level.FINEST, "Page : " + pageCount);
-		for (Map.Entry<Integer, BankEmployee> entry : mapAccountDetails.entrySet()) {
-			int id = entry.getKey();
+		for (Map.Entry<Long, BankEmployee> entry : mapAccountDetails.entrySet()) {
+			long id = entry.getKey();
 			BankEmployee employeeDetails = entry.getValue();
 			logger.log(Level.FINEST,
 					"\nEmployee no: " + id + "	Email: " + employeeDetails.getEmail() + "	Phone Number: "
@@ -315,7 +252,7 @@ public class BankRunner {
 		for (int i = 0; i < size; i++) {
 			logger.log(Level.FINEST,
 					"\nTransaction ID: " + transactionHistory.get(i).getTransactionId() + "\nTransaction Timestamp: "
-							+ convertMillsToDateTime(transactionHistory.get(i).getTransactionTimestamp())
+							+ DateTimeUtils.convertMillsToDateTime(transactionHistory.get(i).getTransactionTimestamp())
 							+ "\nAccount Number: " + transactionHistory.get(i).getAccountNumber() + "\nAmount: "
 							+ transactionHistory.get(i).getAmount());
 
@@ -340,8 +277,8 @@ public class BankRunner {
 			} else {
 				logger.log(Level.FINEST, "Status: Failed");
 			}
-			if(transactionHistory.get(i).getDecription() != null) {
-				logger.log(Level.FINEST, "Description : " + transactionHistory.get(i).getDecription());				
+			if (transactionHistory.get(i).getDecription() != null) {
+				logger.log(Level.FINEST, "Description : " + transactionHistory.get(i).getDecription());
 			}
 		}
 	}

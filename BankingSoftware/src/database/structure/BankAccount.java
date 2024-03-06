@@ -1,14 +1,14 @@
 package database.structure;
 
 public class BankAccount {
-	private Long accountNo;
+	private long accountNo;
 	private double balance;
 	private int status;
-	private int userId;
+	private long userId;
 	private int accountType;
 	private BankBranch bankBranch;
 
-	public Long getAccountNo() {
+	public long getAccountNo() {
 		return accountNo;
 	}
 
@@ -20,7 +20,7 @@ public class BankAccount {
 		return status;
 	}
 
-	public void setAccountNo(Long accountNo) {
+	public void setAccountNo(long accountNo) {
 		this.accountNo = accountNo;
 	}
 
@@ -32,11 +32,11 @@ public class BankAccount {
 		this.status = status;
 	}
 
-	public int getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(int userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
 	}
 

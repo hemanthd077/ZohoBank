@@ -7,17 +7,17 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankBranch;
 import database.structure.BankEmployee;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
 
 public class EmployeeDatabase implements IEmployeeData {
 
-	public Map<Integer, Map<Integer, BankEmployee>> getEmployeeByBranch(int branchId, int status)
-			throws CustomException {
+	@Override
+	public Map<Integer, Map<Long, BankEmployee>> getEmployeeByBranch(int branchId, int status) throws CustomException {
 
-		Map<Integer, Map<Integer, BankEmployee>> branchEmployee = new HashMap<Integer, Map<Integer, BankEmployee>>();
+		Map<Integer, Map<Long, BankEmployee>> branchEmployee = new HashMap<>();
 
 		String query = "SELECT U.*, B.*, Br.* " + "FROM ZohoBankUser U "
 				+ "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
@@ -28,17 +28,17 @@ public class EmployeeDatabase implements IEmployeeData {
 			fetchByBranchStatement.setInt(1, status);
 			fetchByBranchStatement.setInt(2, branchId);
 
-			int empId;
+			long empId;
 			try (ResultSet resultSet = fetchByBranchStatement.executeQuery()) {
-				Map<Integer, BankEmployee> tempEmployeeMap = new HashMap<>();
+				Map<Long, BankEmployee> tempEmployeeMap = new HashMap<>();
 				while (resultSet.next()) {
-					empId = resultSet.getInt("USER_ID");
+					empId = resultSet.getLong("USER_ID");
 					BankEmployee employeeDetails = new BankEmployee();
 					employeeDetails.setUserId(empId);
 					employeeDetails.setEmail(resultSet.getString("EMAIL"));
 					employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 					employeeDetails.setName(resultSet.getString("NAME"));
-					if (GlobalChecker.columnExists(resultSet, "DOB")) {
+					if (CommonDatabaseUtil.columnExists(resultSet, "DOB")) {
 						employeeDetails.setDateOfBirth(resultSet.getLong("DOB"));
 					}
 					employeeDetails.setGender(resultSet.getString("GENDER"));
@@ -64,10 +64,10 @@ public class EmployeeDatabase implements IEmployeeData {
 	}
 
 	@Override
-	public Map<Integer,BankEmployee> getEmployeeData(int status, int userId, int access, int rowLimit, int pageCount)
+	public Map<Long, BankEmployee> getEmployeeData(int status, long userId, int access, int rowLimit, int pageCount)
 			throws CustomException {
 		try {
-			Map<Integer, BankEmployee> employeeMap = new HashMap<>();
+			Map<Long, BankEmployee> employeeMap = new HashMap<>();
 			String query = "SELECT U.*, B.*, Br.* " + "FROM ZohoBankUser U "
 					+ "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
 					+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID WHERE U.STATUS = ? ";
@@ -86,7 +86,7 @@ public class EmployeeDatabase implements IEmployeeData {
 				fetchStatement.setInt(1, status);
 				if (accessStatus && userIdStatus) {
 					fetchStatement.setInt(2, access);
-					fetchStatement.setInt(3, userId);
+					fetchStatement.setLong(3, userId);
 					fetchStatement.setInt(4, rowLimit);
 					fetchStatement.setInt(5, pageCount);
 				} else if (accessStatus) {
@@ -94,21 +94,21 @@ public class EmployeeDatabase implements IEmployeeData {
 					fetchStatement.setInt(3, rowLimit);
 					fetchStatement.setInt(4, pageCount);
 				} else if (userIdStatus) {
-					fetchStatement.setInt(2, userId);
+					fetchStatement.setLong(2, userId);
 					fetchStatement.setInt(3, rowLimit);
 					fetchStatement.setInt(4, pageCount);
 				}
-				int empUserId;
+				long empUserId;
 				try (ResultSet resultSet = fetchStatement.executeQuery()) {
 					while (resultSet.next()) {
 
-						empUserId = resultSet.getInt("USER_ID");
+						empUserId = resultSet.getLong("USER_ID");
 						BankEmployee employeeDetails = new BankEmployee();
 						employeeDetails.setUserId(empUserId);
 						employeeDetails.setEmail(resultSet.getString("EMAIL"));
 						employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 						employeeDetails.setName(resultSet.getString("NAME"));
-						if (GlobalChecker.columnExists(resultSet, "DOB")) {
+						if (CommonDatabaseUtil.columnExists(resultSet, "DOB")) {
 							employeeDetails.setDateOfBirth(resultSet.getLong("DOB"));
 						}
 						employeeDetails.setGender(resultSet.getString("GENDER"));

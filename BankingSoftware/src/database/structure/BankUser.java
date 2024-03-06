@@ -1,7 +1,7 @@
 package database.structure;
 
 public class BankUser {
-	private int userId;
+	private long userId;
 	private String email;
 	private String password;
 	private String phoneNumber;
@@ -10,7 +10,7 @@ public class BankUser {
 	private String gender;
 	private String address;
 
-	public int getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 
@@ -42,7 +42,7 @@ public class BankUser {
 		return address;
 	}
 
-	public void setUserId(int userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
 	}
 

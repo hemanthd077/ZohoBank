@@ -3,7 +3,7 @@ package database.structure;
 public class BankTransaction {
 	private String transactionId;
 	private long transactionTimestamp;
-	private int userId;
+	private long userId;
 	private long accountNumber;
 	private double amount;
 	private int paymentType;
@@ -20,7 +20,7 @@ public class BankTransaction {
 		return transactionTimestamp;
 	}
 
-	public int getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 
@@ -48,7 +48,7 @@ public class BankTransaction {
 		this.transactionTimestamp = transactionTimestamp;
 	}
 
-	public void setUserId(int userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
 	}
 

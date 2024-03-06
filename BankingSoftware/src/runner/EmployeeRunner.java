@@ -8,6 +8,7 @@ import database.structure.BankAccount;
 import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import globalUtilities.CustomException;
+import globalUtilities.DateTimeUtils;
 import helper.EmployeeHelper;
 import helper.UserHelper;
 import helper.enumFiles.ExceptionStatus;
@@ -29,7 +30,7 @@ public class EmployeeRunner extends BankRunner {
 
 	public void EmployeeRunnerTask() throws CustomException {
 		logger.log(Level.FINEST, "result : Employee");
-		int userId = userHelper.getMyUserId();
+		long userId = userHelper.getMyUserId();
 		BankEmployee bankEmployee = employeeHelper.getMyData();
 		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
 		int employeeChoice = 1;
@@ -72,6 +73,10 @@ public class EmployeeRunner extends BankRunner {
 								String gender = genderChoice == 1 ? "Male" : "Female";
 								bankCustomerDetails.setGender(gender);
 
+								logger.log(Level.INFO, "Enter the Date of Birth YYYY-MM-DD : ");
+								String dob = scanner.nextLine();
+								bankCustomerDetails.setDateOfBirth(DateTimeUtils.convertDateTimeToMillis(dob));
+
 								logger.log(Level.INFO, "Enter the Address : ");
 								bankCustomerDetails.setAddress(scanner.nextLine());
 
@@ -102,14 +107,14 @@ public class EmployeeRunner extends BankRunner {
 							try {
 								int rowLimit = 5;
 								int pageCount = 1;
-								int userChoice;
+								long userChoice;
 								do {
 									logger.log(Level.INFO, "\nSelect the user to Create Bank Account");
-									Map<Integer, BankCustomer> allUserDetails = employeeHelper
+									Map<Long, BankCustomer> allUserDetails = employeeHelper
 											.getActiveCustomerDetails(rowLimit, pageCount);
 									avaliableUser(allUserDetails, pageCount);
 									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
-									userChoice = scanner.nextInt();
+									userChoice = scanner.nextLong();
 									scanner.nextLine();
 									if (userChoice == 0) {
 										pageCount++;
@@ -155,14 +160,14 @@ public class EmployeeRunner extends BankRunner {
 					case 3: {
 						int rowLimit = 5;
 						int pageCount = 1;
-						int choice;
+						long choice;
 						logger.log(Level.FINE, "The Existing Customer of the Bank");
 						do {
-							Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+							Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 									.getActiveCustomerDetails(rowLimit, pageCount);
 							avaliableUser(allcustomerDetails, pageCount);
 							logger.log(Level.INFO, "0. Next\n-1. Prev\n Other to Exit");
-							choice = scanner.nextInt();
+							choice = scanner.nextLong();
 							scanner.nextLine();
 							if (choice == 0) {
 								pageCount++;
@@ -182,11 +187,11 @@ public class EmployeeRunner extends BankRunner {
 						while (flag) {
 							try {
 								logger.log(Level.INFO, "Select the Customer to get Account");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+								Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 										.getActiveCustomerDetails(rowLimit, pageCount);
 								avaliableUser(allcustomerDetails, pageCount);
 								if (allcustomerDetails.size() > 0) {
-									int userChoice = scanner.nextInt();
+									long userChoice = scanner.nextLong();
 
 									BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
 									if (bankCustomerDetails == null) {
@@ -221,10 +226,10 @@ public class EmployeeRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to Block.");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+								Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 										.getActiveCustomerDetails(rowLimit, pageCount);
 								avaliableUser(allcustomerDetails, pageCount);
-								int userChoice = scanner.nextInt();
+								long userChoice = scanner.nextLong();
 
 								BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
 								if (bankCustomerDetails == null) {
@@ -272,11 +277,11 @@ public class EmployeeRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to get InActive Account");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+								Map<Long, BankCustomer> allcustomerDetails = employeeHelper
 										.getActiveCustomerDetails(rowLimit, pageCount);
 								avaliableUser(allcustomerDetails, pageCount);
 								if (allcustomerDetails.size() > 0) {
-									int userChoice = scanner.nextInt();
+									long userChoice = scanner.nextLong();
 
 									BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
 									if (bankCustomerDetails == null) {
@@ -311,12 +316,12 @@ public class EmployeeRunner extends BankRunner {
 								int rowLimit = 5;
 								int pageCount = 1;
 								logger.log(Level.INFO, "\nList of User Bank Account.");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
-										.getAllUserDetails(rowLimit, pageCount);
+								Map<Long, BankCustomer> allcustomerDetails = employeeHelper.getAllUserDetails(rowLimit,
+										pageCount);
 								avaliableUser(allcustomerDetails, pageCount);
 
 								if (allcustomerDetails.size() > 0) {
-									int userChoice = scanner.nextInt();
+									long userChoice = scanner.nextLong();
 
 									BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
 									if (bankCustomerDetails == null) {

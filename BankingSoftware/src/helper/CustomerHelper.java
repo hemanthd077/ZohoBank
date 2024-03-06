@@ -7,11 +7,14 @@ import java.util.Map;
 
 import database.IAccountData;
 import database.ICustomerData;
+import database.IUserData;
 import database.structure.BankAccount;
 import database.structure.BankCustomer;
 import database.structure.BankTransaction;
+import database.structure.CurrentUser;
 import globalUtilities.CustomException;
-import globalUtilities.GlobalChecker;
+import globalUtilities.DateTimeUtils;
+import globalUtilities.GlobalCommonChecker;
 import helper.enumFiles.ExceptionStatus;
 import helper.enumFiles.PaymentType;
 import helper.enumFiles.StatusType;
@@ -19,7 +22,8 @@ import helper.enumFiles.StatusType;
 public class CustomerHelper {
 
 	private static ICustomerData customerDatabase;
-	private static IAccountData bankAccountDatabase;
+	private static IAccountData accountDatabase;
+	private static IUserData userDatabase;
 	private static UserHelper userHelper;
 
 	public CustomerHelper() throws CustomException {
@@ -28,7 +32,11 @@ public class CustomerHelper {
 			customerDatabase = (ICustomerData) bankCustomerDao.getDeclaredConstructor().newInstance();
 
 			Class<?> bankAccountDao = Class.forName("database.AccountDatabase");
-			bankAccountDatabase = (IAccountData) bankAccountDao.getDeclaredConstructor().newInstance();
+			accountDatabase = (IAccountData) bankAccountDao.getDeclaredConstructor().newInstance();
+
+			Class<?> bankUserDao = Class.forName("database.UserDatabase");
+			userDatabase = (IUserData) bankUserDao.getDeclaredConstructor().newInstance();
+
 			userHelper = new UserHelper();
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -42,12 +50,12 @@ public class CustomerHelper {
 	}
 
 	public double checkBalance(BankAccount bankAccountDetails, String password) throws CustomException {
-		GlobalChecker.checkNull(bankAccountDetails);
-		GlobalChecker.checkNull(password);
+		GlobalCommonChecker.checkNull(bankAccountDetails);
+		GlobalCommonChecker.checkNull(password);
 
 		userHelper.validatePassword(password);
 
-		BankAccount accStatus = bankAccountDatabase.getAccountData(bankAccountDetails.getAccountNo(),
+		BankAccount accStatus = accountDatabase.getAccountData(bankAccountDetails.getAccountNo(),
 				StatusType.ACTIVE.getCode());
 
 		return accStatus.getBalance();
@@ -56,7 +64,7 @@ public class CustomerHelper {
 	public int withdrawTransaction(BankTransaction transactionDetails, BankAccount senderBankAccountDetails,
 			String password) throws CustomException {
 
-		GlobalChecker.checkNull(transactionDetails);
+		GlobalCommonChecker.checkNull(transactionDetails);
 
 		transactionDetails.setPaymentType(PaymentType.WITHDRAWAL.getCode());
 		return moneyTransaction(transactionDetails, senderBankAccountDetails, password);
@@ -64,7 +72,7 @@ public class CustomerHelper {
 
 	public int depositTransaction(BankTransaction transactionDetails, BankAccount senderBankAccountDetails,
 			String password) throws CustomException {
-		GlobalChecker.checkNull(transactionDetails);
+		GlobalCommonChecker.checkNull(transactionDetails);
 
 		transactionDetails.setPaymentType(PaymentType.DEPOSIT.getCode());
 
@@ -76,14 +84,18 @@ public class CustomerHelper {
 		transactInputNullCheck(transactionDetails, refAccount, password);
 
 		userHelper.validatePassword(password);
+		double amount = transactionDetails.getAmount();
 
-		String transactionId = GlobalChecker.generateTransactionId();
+		if (amount < 0) {
+			throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
+		}
+
+		String transactionId = GlobalCommonChecker.generateTransactionId();
 		int paymentType = transactionDetails.getPaymentType();
 
-		BankAccount senderAccData = bankAccountDatabase.getAccountData(refAccount.getAccountNo(),
+		BankAccount senderAccData = accountDatabase.getAccountData(refAccount.getAccountNo(),
 				StatusType.ACTIVE.getCode());
 
-		double amount = transactionDetails.getAmount();
 		long senderAccNo = senderAccData.getAccountNo();
 		double balance = senderAccData.getBalance();
 
@@ -93,7 +105,7 @@ public class CustomerHelper {
 			updateFieldMap.put("BALANCE",
 					paymentType == PaymentType.DEPOSIT.getCode() ? balance + amount : balance - amount);
 
-			boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(),
+			boolean senderUpdateResult = accountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(),
 					updateFieldMap);
 			if (senderUpdateResult) {
 				boolean senderTransactionDetails = transactSetterAndStore(transactionId, senderAccData,
@@ -106,12 +118,12 @@ public class CustomerHelper {
 			} else {
 				updateFieldMap.put("BALANCE",
 						paymentType == PaymentType.DEPOSIT.getCode() ? balance - amount : balance + amount);
-				bankAccountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(), updateFieldMap);
+				accountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(), updateFieldMap);
 				return 0;
 			}
 
 		} else {
-			BankAccount receiverAccData = bankAccountDatabase
+			BankAccount receiverAccData = accountDatabase
 					.getAccountData(transactionDetails.getTransactorAccountNumber(), StatusType.ACTIVE.getCode());
 
 			try {
@@ -122,7 +134,7 @@ public class CustomerHelper {
 				}
 
 				updateFieldMap.put("BALANCE", balance - amount);
-				boolean senderUpdateResult = bankAccountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(),
+				boolean senderUpdateResult = accountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(),
 						updateFieldMap);
 				if (senderUpdateResult) {
 					transactionDetails.setPaymentType(PaymentType.DEBIT.getCode());
@@ -130,7 +142,7 @@ public class CustomerHelper {
 							transactionDetails, StatusType.ACTIVE.getCode());
 					if (senderTransactionDetails) {
 						updateFieldMap.put("BALANCE", rBalance + amount);
-						bankAccountDatabase.updateAccount(receiverAccNo, receiverAccData.getUserId(), updateFieldMap);
+						accountDatabase.updateAccount(receiverAccNo, receiverAccData.getUserId(), updateFieldMap);
 
 						transactionDetails.setPaymentType(PaymentType.CREDIT.getCode());
 						transactSetterAndStore(transactionId, receiverAccData, transactionDetails,
@@ -144,7 +156,7 @@ public class CustomerHelper {
 				} else {
 					updateFieldMap.put("BALANCE",
 							paymentType == PaymentType.DEPOSIT.getCode() ? balance - amount : balance + amount);
-					bankAccountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(), updateFieldMap);
+					accountDatabase.updateAccount(senderAccNo, senderAccData.getUserId(), updateFieldMap);
 					return 0;
 				}
 			} catch (NullPointerException e) {
@@ -155,16 +167,16 @@ public class CustomerHelper {
 
 	private static void transactInputNullCheck(Object transactionDetails, Object senderBankAccountDetails,
 			Object userDetails) throws CustomException {
-		GlobalChecker.checkNull(transactionDetails);
-		GlobalChecker.checkNull(senderBankAccountDetails);
-		GlobalChecker.checkNull(userDetails);
+		GlobalCommonChecker.checkNull(transactionDetails);
+		GlobalCommonChecker.checkNull(senderBankAccountDetails);
+		GlobalCommonChecker.checkNull(userDetails);
 	}
 
 	private static boolean transactSetterAndStore(String transactionId, BankAccount accStatus,
 			BankTransaction bankTransaction, int status) throws CustomException {
 
-		GlobalChecker.checkNull(accStatus);
-		GlobalChecker.checkNull(transactionId);
+		GlobalCommonChecker.checkNull(accStatus);
+		GlobalCommonChecker.checkNull(transactionId);
 
 		double amount = bankTransaction.getAmount();
 
@@ -178,7 +190,7 @@ public class CustomerHelper {
 		}
 		BankTransaction transactionDetails = new BankTransaction();
 		transactionDetails.setTransactionId(transactionId);
-		transactionDetails.setTransactionTimestamp(GlobalChecker.getCurrentTimeMills());
+		transactionDetails.setTransactionTimestamp(DateTimeUtils.getCurrentTimeMills());
 		transactionDetails.setUserId(accStatus.getUserId());
 		transactionDetails.setAccountNumber(accStatus.getAccountNo());
 		transactionDetails.setAmount(amount);
@@ -188,7 +200,7 @@ public class CustomerHelper {
 		transactionDetails.setDescription(bankTransaction.getDecription());
 		transactionDetails.setStatus(status);
 
-		return bankAccountDatabase.storeTransaction(transactionDetails);
+		return accountDatabase.storeTransaction(transactionDetails);
 	}
 
 	private static void senderExceptionValidate(BankAccount senderAcc, double amount, double balance, int paymentType,
@@ -205,23 +217,38 @@ public class CustomerHelper {
 		if (days < 1 || days > 365) {
 			throw new CustomException("Invalid Input");
 		}
-		long currentTimeMillis = GlobalChecker.getCurrentTimeMills();
-		Long timeStamp = currentTimeMillis - GlobalChecker.calculateNDayMills(days);
-		return bankAccountDatabase.getTransactDetailsWithinPeriod(accountNo, timeStamp,
-				GlobalChecker.getCurrentTimeMills());
+		long currentTimeMillis = DateTimeUtils.getCurrentTimeMills();
+		Long timeStamp = currentTimeMillis - DateTimeUtils.calculateNDayMills(days);
+		return accountDatabase.getTransactDetailsWithinPeriod(accountNo, timeStamp,
+				DateTimeUtils.getCurrentTimeMills());
 	}
 
 	public List<BankTransaction> getTransactionWithInPeriod(long accountNo, String date1, String date2)
 			throws CustomException {
-		GlobalChecker.checkNull(date1);
-		GlobalChecker.checkNull(date2);
+		GlobalCommonChecker.checkNull(date1);
+		GlobalCommonChecker.checkNull(date2);
 
-		long dateMilles1 = GlobalChecker.convertDateTimeToMillis(date1);
-		long dateMilles2 = GlobalChecker.convertDateTimeToMillis(date2) + GlobalChecker.calculateNDayMills(1);
+		long dateMilles1 = DateTimeUtils.convertDateTimeToMillis(date1);
+		long dateMilles2 = DateTimeUtils.convertDateTimeToMillis(date2) + DateTimeUtils.calculateNDayMills(1);
 		if (dateMilles1 > dateMilles2) {
 			throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
 		}
-		return bankAccountDatabase.getTransactDetailsWithinPeriod(accountNo, dateMilles1, dateMilles2);
+		return accountDatabase.getTransactDetailsWithinPeriod(accountNo, dateMilles1, dateMilles2);
 
+	}
+
+	public boolean changeUserPassword(String oldPassword, String newPassword) throws CustomException {
+		Map<Object, Object> updateMap = new HashMap<>();
+		long tempUserId = CurrentUser.getUserId();
+		oldPassword = GlobalCommonChecker.hashPassword(oldPassword);
+		if (userDatabase.userValidation(tempUserId, oldPassword) == 0) {
+			throw new CustomException(ExceptionStatus.WRONGPASSWORD.getStatus());
+		}
+
+		if (oldPassword.endsWith(newPassword)) {
+			throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus() + " Enter same Password");
+		}
+		updateMap.put("PASSWORD", GlobalCommonChecker.hashPassword(newPassword));
+		return userDatabase.updateUser(tempUserId, updateMap);
 	}
 }
