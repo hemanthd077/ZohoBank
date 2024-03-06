@@ -1,13 +1,12 @@
 package runner;
 
 import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import database.structureClasses.BankAccount;
-import database.structureClasses.BankCustomer;
-import database.structureClasses.BankEmployee;
+import database.structure.BankAccount;
+import database.structure.BankCustomer;
+import database.structure.BankEmployee;
 import globalUtilities.CustomException;
 import helper.EmployeeHelper;
 import helper.UserHelper;
@@ -82,7 +81,7 @@ public class EmployeeRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Aadhar no : ");
 								bankCustomerDetails.setAadharNumber(scanner.nextLine());
 
-								if (employeeHelper.adminCreateCustomer(List.of(bankCustomerDetails))) {
+								if (employeeHelper.adminCreateCustomer(bankCustomerDetails)) {
 									logger.log(Level.FINEST, "Created successfully");
 								} else {
 									logger.log(Level.WARNING, "User already exist or creation failed");
@@ -101,24 +100,49 @@ public class EmployeeRunner extends BankRunner {
 						flag = true;
 						while (flag) {
 							try {
-								logger.log(Level.FINE, "\n*** Creating an Bank Account ***");
-								logger.log(Level.INFO, "Select the Customer to Create Bank Account");
-								Map<Integer, BankCustomer> allUserDetails = employeeHelper.getActiveCustomerDetails();
-								avaliableUser(allUserDetails);
-								int userChoice = scanner.nextInt();
-								scanner.nextLine();
-								BankCustomer bankCustomerDetails = allUserDetails.get(userChoice);
-								if (bankCustomerDetails == null) {
-									logger.log(Level.WARNING, "Invalid Input");
-									break;
-								}
+								int rowLimit = 5;
+								int pageCount = 1;
+								int userChoice;
+								do {
+									logger.log(Level.INFO, "\nSelect the user to Create Bank Account");
+									Map<Integer, BankCustomer> allUserDetails = employeeHelper
+											.getActiveCustomerDetails(rowLimit, pageCount);
+									avaliableUser(allUserDetails, pageCount);
+									logger.log(Level.INFO, "0. Next\n-1. Prev\n");
+									userChoice = scanner.nextInt();
+									scanner.nextLine();
+									if (userChoice == 0) {
+										pageCount++;
+									} else if (userChoice == -1 && userChoice == 1) {
+										logger.log(Level.WARNING, "Invalid Input");
+										continue;
+									} else if (userChoice == -1) {
+										pageCount--;
+									} else {
+										BankCustomer bankCustomerDetails = allUserDetails.get(userChoice);
+										if (bankCustomerDetails == null) {
+											logger.log(Level.WARNING, "Invalid Input");
+											break;
+										}
+										logger.log(Level.INFO, "Select the Account type" + "\n1. Savings Account"
+												+ "\n2. Salary Account" + "\n3. Current Account");
+										int accountType = scanner.nextInt();
+										scanner.nextLine();
+										if (accountType < 0 || accountType > 3) {
+											logger.log(Level.WARNING, ExceptionStatus.INVALIDINPUT.getStatus());
+											continue;
+										}
 
-								if (employeeHelper.employeeCreateCustomerAccount(bankCustomerDetails)) {
-									logger.log(Level.FINEST, "Successfully Account Created");
-								} else {
-									logger.log(Level.WARNING, "Failed to Create the Account");
-								}
-								flag = false;
+										if (employeeHelper.employeeCreateCustomerAccount(bankCustomerDetails,
+												accountType)) {
+											logger.log(Level.FINEST, "Successfully Account Created");
+										} else {
+											logger.log(Level.WARNING, "Failed to Create the Account");
+										}
+										flag = false;
+										break;
+									}
+								} while (userChoice == 0 || userChoice == -1);
 							} catch (InputMismatchException e) {
 								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
 								scanner.nextLine();
@@ -129,19 +153,38 @@ public class EmployeeRunner extends BankRunner {
 						break;
 					}
 					case 3: {
+						int rowLimit = 5;
+						int pageCount = 1;
+						int choice;
 						logger.log(Level.FINE, "The Existing Customer of the Bank");
-						Map<Integer, BankCustomer> allcustomerDetails = employeeHelper.getActiveCustomerDetails();
-						avaliableUser(allcustomerDetails);
+						do {
+							Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+									.getActiveCustomerDetails(rowLimit, pageCount);
+							avaliableUser(allcustomerDetails, pageCount);
+							logger.log(Level.INFO, "0. Next\n-1. Prev\n Other to Exit");
+							choice = scanner.nextInt();
+							scanner.nextLine();
+							if (choice == 0) {
+								pageCount++;
+							} else if (choice == -1 && pageCount == 1) {
+								logger.log(Level.WARNING, "Invalid Input");
+								continue;
+							} else {
+								pageCount--;
+							}
+						} while (choice == 0 || choice == -1);
 						break;
 					}
 					case 4: {
+						int rowLimit = 5;
+						int pageCount = 1;
 						flag = true;
 						while (flag) {
 							try {
 								logger.log(Level.INFO, "Select the Customer to get Account");
 								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
-										.getActiveCustomerDetails();
-								avaliableUser(allcustomerDetails);
+										.getActiveCustomerDetails(rowLimit, pageCount);
+								avaliableUser(allcustomerDetails, pageCount);
 								if (allcustomerDetails.size() > 0) {
 									int userChoice = scanner.nextInt();
 
@@ -152,8 +195,8 @@ public class EmployeeRunner extends BankRunner {
 									}
 
 									logger.log(Level.INFO, "List of Accounts Avaliable : ");
-									Map<Integer, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
+											bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 									availableAccount(allAccountDetails);
 									if (allAccountDetails.size() == 0) {
 										logger.log(Level.WARNING, "No Account Found for this Customer");
@@ -175,10 +218,12 @@ public class EmployeeRunner extends BankRunner {
 						flag = true;
 						while (flag) {
 							try {
+								int rowLimit = 5;
+								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to Block.");
 								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
-										.getActiveCustomerDetails();
-								avaliableUser(allcustomerDetails);
+										.getActiveCustomerDetails(rowLimit, pageCount);
+								avaliableUser(allcustomerDetails, pageCount);
 								int userChoice = scanner.nextInt();
 
 								BankCustomer bankCustomerDetails = allcustomerDetails.get(userChoice);
@@ -188,11 +233,11 @@ public class EmployeeRunner extends BankRunner {
 								}
 
 								logger.log(Level.INFO, "Select the Account to Block.");
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getBranchAccounts(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								if (allAccountDetails.size() > 0) {
-									int accountChoice = scanner.nextInt();
+									long accountChoice = scanner.nextLong();
 									scanner.nextLine();
 
 									BankAccount bankAccount = allAccountDetails.get(accountChoice);
@@ -201,7 +246,8 @@ public class EmployeeRunner extends BankRunner {
 										break;
 									}
 
-									if (employeeHelper.deleteAccount(bankAccount)) {
+									if (employeeHelper.deleteAccount(bankAccount.getAccountNo(),
+											bankAccount.getUserId())) {
 										logger.log(Level.FINEST, "Blocking of Customer Account Successfull");
 									} else {
 										logger.log(Level.WARNING, "Blocking of Customer Account failed");
@@ -223,10 +269,12 @@ public class EmployeeRunner extends BankRunner {
 						flag = true;
 						while (flag) {
 							try {
+								int rowLimit = 5;
+								int pageCount = 1;
 								logger.log(Level.INFO, "Select the User to get InActive Account");
 								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
-										.getActiveCustomerDetails();
-								avaliableUser(allcustomerDetails);
+										.getActiveCustomerDetails(rowLimit, pageCount);
+								avaliableUser(allcustomerDetails, pageCount);
 								if (allcustomerDetails.size() > 0) {
 									int userChoice = scanner.nextInt();
 
@@ -237,8 +285,8 @@ public class EmployeeRunner extends BankRunner {
 									}
 
 									logger.log(Level.INFO, "List of InactiveAccounts Avaliable : ");
-									Map<Integer, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											List.of(bankCustomerDetails), StatusType.INACTIVE.getCode());
+									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
+											bankCustomerDetails.getUserId(), StatusType.INACTIVE.getCode());
 									availableAccount(allAccountDetails);
 									if (allAccountDetails.size() == 0) {
 										logger.log(Level.WARNING, "No Account Found for this Customer");
@@ -260,9 +308,12 @@ public class EmployeeRunner extends BankRunner {
 						flag = true;
 						while (flag) {
 							try {
+								int rowLimit = 5;
+								int pageCount = 1;
 								logger.log(Level.INFO, "\nList of User Bank Account.");
-								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper.getAllUserDetails();
-								avaliableUser(allcustomerDetails);
+								Map<Integer, BankCustomer> allcustomerDetails = employeeHelper
+										.getAllUserDetails(rowLimit, pageCount);
+								avaliableUser(allcustomerDetails, pageCount);
 
 								if (allcustomerDetails.size() > 0) {
 									int userChoice = scanner.nextInt();
@@ -274,15 +325,16 @@ public class EmployeeRunner extends BankRunner {
 									}
 
 									logger.log(Level.INFO, "\nList of Inactive User Bank Account.");
-									Map<Integer, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											List.of(bankCustomerDetails), StatusType.INACTIVE.getCode());
+									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
+											bankCustomerDetails.getUserId(), StatusType.INACTIVE.getCode());
 									availableAccount(allAccountDetails);
 
 									if (allAccountDetails.size() > 0) {
-										int accountchoice = scanner.nextInt();
+										long accountChoice = scanner.nextLong();
 										scanner.nextLine();
-										BankAccount bankAccount = allAccountDetails.get(accountchoice);
-										if (employeeHelper.activateAccount(bankAccount)) {
+										BankAccount bankAccount = allAccountDetails.get(accountChoice);
+										if (employeeHelper.activateAccount(bankAccount.getAccountNo(),
+												bankAccount.getUserId())) {
 											logger.log(Level.FINEST, "Customer Account Activation Successfull");
 										} else {
 											logger.log(Level.WARNING, "Customer Account Activation failed");

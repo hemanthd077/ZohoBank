@@ -5,7 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -64,10 +65,6 @@ public class GlobalChecker {
 		}
 	}
 
-	public <K, V> boolean checkContainsKey(Map<K, V> inputMap, K inputCheck) {
-		return inputMap.containsKey(inputCheck);
-	}
-
 	public static boolean checkElementsNonZero(int[] array) throws CustomException {
 		GlobalChecker.checkNull(array);
 
@@ -90,13 +87,6 @@ public class GlobalChecker {
 		return System.currentTimeMillis();
 	}
 
-	public static String stringToPattern(List<String> inputStringList, String pattern) throws CustomException {
-		GlobalChecker.checkNull(pattern);
-		GlobalChecker.checkNull(inputStringList);
-
-		return inputStringList.stream().map(String::toUpperCase).collect(Collectors.joining(pattern));
-	}
-
 	public static <K, V> String userUpdateQueryBuilder(Map<K, V> keyWithValue) throws CustomException {
 		GlobalChecker.checkNull(keyWithValue);
 
@@ -105,13 +95,17 @@ public class GlobalChecker {
 	}
 
 	public static Long generateUniqueAccountNumber(int length) {
-		String accountNumber;
-		do {
-			long timestamp = System.currentTimeMillis();
-			int randomPart = new Random().nextInt(9000) + 1000;
-			accountNumber = String.valueOf(timestamp) + String.valueOf(randomPart);
+		long timestamp = System.currentTimeMillis();
+		int randomNumber = new Random().nextInt(1000000000);
 
-		} while (accountNumber.length() == 12);
+		String accountNumber = "" + timestamp + randomNumber;
+		if (accountNumber.length() > 12) {
+			accountNumber = accountNumber.substring(0, 12);
+		} else if (accountNumber.length() < 12) {
+			int paddingLength = 12 - accountNumber.length();
+			String padding = "0".repeat(paddingLength);
+			accountNumber = accountNumber + padding;
+		}
 
 		return Long.parseLong(accountNumber);
 	}
@@ -127,5 +121,14 @@ public class GlobalChecker {
 			return false;
 		}
 	}
-	
+
+	public static long convertDateTimeToMillis(String dateString) {
+		LocalDate localDate = LocalDate.parse(dateString);
+		return localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
+
+	public static long calculateNDayMills(int days) {
+		return (days * 24L * 60L * 60L * 1000L);
+	}
+
 }

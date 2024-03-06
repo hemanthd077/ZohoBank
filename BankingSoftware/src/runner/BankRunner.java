@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -12,13 +13,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import database.ConnectionCreation;
-import database.structureClasses.BankAccount;
-import database.structureClasses.BankCustomer;
-import database.structureClasses.BankBranch;
-import database.structureClasses.BankEmployee;
-import database.structureClasses.BankTransaction;
-import database.structureClasses.BankUser;
+import database.structure.BankAccount;
+import database.structure.BankBranch;
+import database.structure.BankCustomer;
+import database.structure.BankEmployee;
+import database.structure.BankTransaction;
+import database.structure.BankUser;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
 import helper.UserHelper;
@@ -73,22 +73,22 @@ public class BankRunner {
 //					userLoginDetails.setPassword(password);
 //						
 //					customer Login 1 //Madhavan
-//					String phoneNo = "8901234567";
-//					validPhoneNumber(phoneNo);
-//					userLoginDetails.setPhonenumber(phoneNo);
-//					logger.log(Level.INFO,"Enter the Password");
-//					String password = "Madhavan@12345";
-//					validPassword(password);
-//					userLoginDetails.setPassword(password);
-
-//					customer Login 2 //Joshi
-					String phoneNo = "9123456789";
+					String phoneNo = "8901234567";
 					validPhoneNumber(phoneNo);
 					userLoginDetails.setPhonenumber(phoneNo);
 					logger.log(Level.INFO,"Enter the Password");
-					String password = "Joshi@12345";
+					String password = "Madhavan@12345";
 					validPassword(password);
 					userLoginDetails.setPassword(password);
+
+//					customer Login 2 //Joshi
+//					String phoneNo = "9123456789";
+//					validPhoneNumber(phoneNo);
+//					userLoginDetails.setPhonenumber(phoneNo);
+//					logger.log(Level.INFO, "Enter the Password");
+//					String password = "Joshi@12345";
+//					validPassword(password);
+//					userLoginDetails.setPassword(password);
 
 //					Employee Login 1 //Surya
 //					String phoneNo = "9087654321";
@@ -108,7 +108,8 @@ public class BankRunner {
 //					validPassword(password);
 //					userLoginDetails.setPassword(password);
 
-					int result = userHelper.userLogin(userLoginDetails);
+					int result = userHelper.userLogin(userLoginDetails.getPhoneNumber(),
+							userLoginDetails.getPassword());
 					switch (result) {
 					case 1: {
 						new CustomerRunner().CustomerRunnerTask();
@@ -138,7 +139,6 @@ public class BankRunner {
 		} while (choice != 0);
 		logger.log(Level.FINE, "!!! Application Closed Successfully !!!");
 		scanner.close();
-		ConnectionCreation.closeConnection();
 	}
 
 	static void avaliableBranch(Map<Integer, BankBranch> mapBranchDetails) throws CustomException {
@@ -151,9 +151,9 @@ public class BankRunner {
 		}
 	}
 
-	static void avaliableUser(Map<Integer, BankCustomer> mapUserDetails) throws CustomException {
+	static void avaliableUser(Map<Integer, BankCustomer> mapUserDetails, int pageCount) throws CustomException {
 
-		logger.log(Level.FINEST, "Total no of Users :" + mapUserDetails.size());
+		logger.log(Level.FINEST, "Page :" + pageCount);
 		for (Map.Entry<Integer, BankCustomer> entry : mapUserDetails.entrySet()) {
 			Integer userId = entry.getKey();
 			BankCustomer branchDetails = entry.getValue();
@@ -162,21 +162,32 @@ public class BankRunner {
 		}
 	}
 
-	static void availableAccount(Map<Integer, BankAccount> mapAccountDetails) throws CustomException {
+	static void availableAccount(Map<Long, BankAccount> mapAccountDetails) throws CustomException {
 
 		logger.log(Level.FINEST, "Total no of Accounts : " + mapAccountDetails.size());
-		for (Map.Entry<Integer, BankAccount> allBranchentry : mapAccountDetails.entrySet()) {
-			int id = allBranchentry.getKey();
+		for (Map.Entry<Long, BankAccount> allBranchentry : mapAccountDetails.entrySet()) {
+			long id = allBranchentry.getKey();
 			BankAccount bankAccount = allBranchentry.getValue();
 			BankBranch bankBranch = bankAccount.getBankBranch();
-			logger.log(Level.FINEST, "Id : " + id + ",	Account No : " + bankAccount.getAccountNo() + ", Balance : "
-					+ bankAccount.getBalance() + ", IFSC : " + bankBranch.getIfsc() + ", City : " + bankBranch.getCity()
-					+ ", State : " + bankBranch.getState() + ", Address : " + bankBranch.getAddress() + "\n");
+			int accountType = bankAccount.getAccountType();
+			String accType = null;
+			if (accountType == 1) {
+				accType = "Saving";
+			} else if (accountType == 2) {
+				accType = "Salary";
+			} else {
+				accType = "Current";
+			}
+
+			logger.log(Level.FINEST,
+					"Id : " + id + ",  Account No : " + bankAccount.getAccountNo() + ", IFSC : " + bankBranch.getIfsc()
+							+ ", City : " + bankBranch.getCity() + ", State : " + bankBranch.getState() + ", Address : "
+							+ bankBranch.getAddress() + ",	AccountType : " + accType + "\n");
 		}
 	}
 
 	static void mainPage() {
-		logger.log(Level.FINER, "\nWelcome to Zoho Bank ");
+		logger.log(Level.FINER, "\n Welcome to Zoho Of Bank ZOB ");
 		logger.log(Level.INFO, "1. Login");
 		logger.log(Level.INFO, "0. Close the Application");
 	}
@@ -185,6 +196,14 @@ public class BankRunner {
 		Instant instant = Instant.ofEpochMilli(currentTimeMillis);
 		LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd  hh:mm:ss");
+
+		return dateTime.format(dateTimeFormatter);
+	}
+	
+	static String convertMillsToDate(Long currentTimeMillis) {
+		Instant instant = Instant.ofEpochMilli(currentTimeMillis);
+		LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd");
 
 		return dateTime.format(dateTimeFormatter);
 	}
@@ -268,17 +287,17 @@ public class BankRunner {
 		}
 	}
 
-	public static <K, V> void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails) {
+	public static <K, V> void logEmployeeDetails(Map<Integer, BankEmployee> mapAccountDetails, int pageCount) {
 
-		logger.log(Level.FINEST, "Total no of Employee : " + mapAccountDetails.size());
+		logger.log(Level.FINEST, "Page : " + pageCount);
 		for (Map.Entry<Integer, BankEmployee> entry : mapAccountDetails.entrySet()) {
 			int id = entry.getKey();
 			BankEmployee employeeDetails = entry.getValue();
 			logger.log(Level.FINEST,
-					"\nEmployee no: " + id + "\nEmail: " + employeeDetails.getEmail() + "\nPhone Number: "
-							+ employeeDetails.getPhoneNumber() + "\nName: " + employeeDetails.getName() + "\nGender: "
-							+ employeeDetails.getGender() + "\nAddress: " + employeeDetails.getAddress()
-							+ "\nBranch ID: " + employeeDetails.getBankBranch().getBranchId());
+					"\nEmployee no: " + id + "	Email: " + employeeDetails.getEmail() + "	Phone Number: "
+							+ employeeDetails.getPhoneNumber() + "  Name: " + employeeDetails.getName() + "	Gender: "
+							+ employeeDetails.getGender() + "	Address: " + employeeDetails.getAddress()
+							+ "	Branch ID: " + employeeDetails.getBankBranch().getBranchId());
 			int access = employeeDetails.getEmployeeAccess();
 			if (access == 1) {
 				logger.log(Level.FINEST, "Role: Admin");
@@ -289,7 +308,7 @@ public class BankRunner {
 		}
 	}
 
-	protected static void logTransactionHistory(Map<Integer, BankTransaction> transactionHistory) {
+	protected static void logTransactionHistory(List<BankTransaction> transactionHistory) {
 
 		int size = transactionHistory.size();
 
@@ -320,6 +339,9 @@ public class BankRunner {
 				logger.log(Level.FINEST, "Status: Success");
 			} else {
 				logger.log(Level.FINEST, "Status: Failed");
+			}
+			if(transactionHistory.get(i).getDecription() != null) {
+				logger.log(Level.FINEST, "Description : " + transactionHistory.get(i).getDecription());				
 			}
 		}
 	}

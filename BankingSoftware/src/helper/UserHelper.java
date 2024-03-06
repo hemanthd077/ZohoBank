@@ -1,15 +1,13 @@
 package helper;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.Map;
 
 import database.IBranchData;
 import database.IUserData;
 import database.UserDatabase;
-import database.structureClasses.BankBranch;
-import database.structureClasses.BankEmployee;
-import database.structureClasses.BankUser;
+import database.structure.BankBranch;
+import database.structure.BankEmployee;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
 import helper.enumFiles.ExceptionStatus;
@@ -36,13 +34,14 @@ public class UserHelper {
 
 	}
 
-	public int userLogin(BankUser userDetails) throws CustomException {
+	public int userLogin(String phoneNo, String password) throws CustomException {
 
 		try {
-			GlobalChecker.checkNull(userDetails);
+			GlobalChecker.checkNull(phoneNo);
+			GlobalChecker.checkNull(password);
 
-			userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
-			Map<String, Integer> loginResult = userDatabase.userLogin(userDetails);
+			password = GlobalChecker.hashPassword(password);
+			Map<String, Integer> loginResult = userDatabase.userLogin(phoneNo, password);
 			if (loginResult.size() == 0) {
 				throw new CustomException("No Account Found");
 			}
@@ -59,12 +58,12 @@ public class UserHelper {
 	}
 
 	public Map<Integer, BankBranch> getBranchData() throws CustomException {
-		return branchDatabase.getBranchDetails(List.of("BRANCH_ID", "IFSC", "CITY", "ADDRESS"));
+		return branchDatabase.getBranchDetails();
 	}
 
-	public boolean validatePassword(BankUser userDetails) throws CustomException {
-		userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
-		if (userDatabase.validatePassword(userDetails)) {
+	public boolean validatePassword(String password) throws CustomException {
+		password = GlobalChecker.hashPassword(password);
+		if (userDatabase.validatePassword(password)) {
 			return true;
 		}
 		throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());

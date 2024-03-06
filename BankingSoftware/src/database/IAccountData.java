@@ -3,25 +3,25 @@ package database;
 import java.util.List;
 import java.util.Map;
 
-import database.structureClasses.BankAccount;
-import database.structureClasses.BankCustomer;
-import database.structureClasses.BankTransaction;
+import database.structure.BankAccount;
+import database.structure.BankBranch;
+import database.structure.BankCustomer;
+import database.structure.BankTransaction;
 import globalUtilities.CustomException;
-import database.structureClasses.BankBranch;
 
 public interface IAccountData {
 
-	public boolean createBankAccount(BankCustomer bankCustomerDetails, BankBranch branchDetails) throws CustomException;
-
-	public boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException;
-
-	public Map<Integer, BankTransaction> getTransactDetails(BankAccount bankAccountDetails, int days, Long timeStamp)
+	boolean createBankAccount(BankCustomer bankCustomerDetails, BankBranch branchDetails, int accountType)
 			throws CustomException;
 
-	<K, V> boolean updateAccount(BankAccount bankAccountDetails, Map<K, V> fieldWithValue) throws CustomException;
+	boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException;
 
-	public BankAccount getAccountData(BankAccount bankAccountDetails) throws CustomException;
+	<K, V> boolean updateAccount(long accountNo, int userId, Map<K, V> fieldWithValue) throws CustomException;
 
-	public Map<Integer, BankAccount> getAccountWithBranch(List<BankCustomer> bankCustomerDetails, int status,
-			int branchId) throws CustomException;
+	BankAccount getAccountData(long accountNo, int status) throws CustomException;
+
+	Map<Long, BankAccount> getAccountWithBranch(int userId, int status, int branchId) throws CustomException;
+
+	List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
+			throws CustomException;
 }

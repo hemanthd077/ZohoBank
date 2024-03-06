@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import database.structureClasses.BankAccount;
-import database.structureClasses.BankCustomer;
-import database.structureClasses.BankTransaction;
-import database.structureClasses.BankUser;
+import database.structure.BankAccount;
+import database.structure.BankCustomer;
+import database.structure.BankTransaction;
+import database.structure.BankUser;
 import globalUtilities.CustomException;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
@@ -61,15 +61,13 @@ public class CustomerRunner extends BankRunner {
 								bankTransactionDetails.setTransactorAccountNumber(scanner.nextLong());
 
 								logger.log(Level.INFO, "Select your Account to send Amount");
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
-								int accountChoice = scanner.nextInt();
+								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
 
-								int size = allAccountDetails.size();
-
-								if (size < accountChoice || accountChoice < 1) {
+								if (!allAccountDetails.containsKey(accountChoice)) {
 									logger.log(Level.WARNING, "Invalid Input");
 									continue;
 								}
@@ -77,13 +75,13 @@ public class CustomerRunner extends BankRunner {
 								BankAccount refAccount = allAccountDetails.get(accountChoice);
 
 								logger.log(Level.INFO, "Enter the Description");
-								bankTransactionDetails.setDecription(scanner.nextLine());
+								bankTransactionDetails.setDescription(scanner.nextLine());
 
 								logger.log(Level.INFO, "Enter the Password to send Amount");
 								userDetails.setPassword(scanner.nextLine());
 
 								int result = customerHelper.moneyTransaction(bankTransactionDetails, refAccount,
-										userDetails);
+										userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -103,26 +101,26 @@ public class CustomerRunner extends BankRunner {
 								bankCustomerDetails = customerHelper.getCustomerData();
 
 								logger.log(Level.INFO, "Select your Account to check Balance");
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
-								int accountChoice = scanner.nextInt();
+								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
 
-								int size = allAccountDetails.size();
-								if (size < accountChoice || accountChoice < 1) {
+								if (!allAccountDetails.containsKey(accountChoice)) {
 									logger.log(Level.WARNING, "Invalid Input");
 									continue;
 								}
 
 								BankAccount allAccount = allAccountDetails.get(accountChoice);
-
+								
 								logger.log(Level.INFO, "Enter the Password to check Balance");
 								userDetails.setPassword(scanner.nextLine());
 
-								Double balance = customerHelper.checkBalance(allAccount, userDetails);
+								Double balance = customerHelper.checkBalance(allAccount, userDetails.getPassword());
 								logger.log(Level.FINEST, "Account Balance : " + balance);
 								flag = false;
+								break;
 							} catch (InputMismatchException e) {
 								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
 								scanner.nextLine();
@@ -139,14 +137,12 @@ public class CustomerRunner extends BankRunner {
 								bankCustomerDetails = customerHelper.getCustomerData();
 								logger.log(Level.INFO, "Select your Account to check Balance");
 
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
-								int accountChoice = scanner.nextInt();
+								long accountChoice = scanner.nextLong();
 
-								int size = allAccountDetails.size();
-
-								if (size < accountChoice || accountChoice < 1) {
+								if (!allAccountDetails.containsKey(accountChoice)) {
 									logger.log(Level.WARNING, "Invalid Input");
 									continue;
 								}
@@ -158,8 +154,8 @@ public class CustomerRunner extends BankRunner {
 								int days = scanner.nextInt();
 								scanner.nextLine();
 
-								Map<Integer, BankTransaction> bankTransactionDetails = customerHelper
-										.getNDayTransactionDetails(allAccount, days);
+								List<BankTransaction> bankTransactionDetails = customerHelper
+										.getNDayTransactionDetails(allAccount.getAccountNo(), days);
 
 								if (bankTransactionDetails.size() > 0) {
 									logger.log(Level.FINE, "---- Last " + days + " Days Transaction History ----");
@@ -201,26 +197,28 @@ public class CustomerRunner extends BankRunner {
 								bankTransactionDetails.setAmount(amount);
 
 								logger.log(Level.INFO, "Select your Account to withdraw Amount");
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
-								int accountChoice = scanner.nextInt();
+								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
 
-								int size = allAccountDetails.size();
-
-								if (size < accountChoice || accountChoice < 1) {
+								if (!allAccountDetails.containsKey(accountChoice)) {
 									logger.log(Level.WARNING, "Invalid Input");
 									continue;
 								}
 
 								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
+
+								logger.log(Level.INFO, "Enter the Description");
+								bankTransactionDetails.setDescription(scanner.nextLine());
+								
 								logger.log(Level.INFO, "Enter the Password to withdraw");
 								userDetails.setPassword(scanner.nextLine());
 
 								int result = customerHelper.withdrawTransaction(bankTransactionDetails, allAccount,
-										userDetails);
+										userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -250,26 +248,27 @@ public class CustomerRunner extends BankRunner {
 								bankTransactionDetails.setAmount(amount);
 
 								logger.log(Level.INFO, "Select your Account to Deposit Amount");
-								Map<Integer, BankAccount> allAccountDetails = employeeHelper
-										.getAccountAllBranch(List.of(bankCustomerDetails), StatusType.ACTIVE.getCode());
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
-								int accountChoice = scanner.nextInt();
+								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
 
-								int size = allAccountDetails.size();
-
-								if (size < accountChoice || accountChoice < 1) {
+								if (!allAccountDetails.containsKey(accountChoice)) {
 									logger.log(Level.WARNING, "Invalid Input");
 									continue;
 								}
 
 								BankAccount allAccount = allAccountDetails.get(accountChoice);
 
+								logger.log(Level.INFO, "Enter the Description");
+								bankTransactionDetails.setDescription(scanner.nextLine());
+								
 								logger.log(Level.INFO, "Enter the Password to Deposit");
 								userDetails.setPassword(scanner.nextLine());
 
 								int result = customerHelper.depositTransaction(bankTransactionDetails, allAccount,
-										userDetails);
+										userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -282,6 +281,50 @@ public class CustomerRunner extends BankRunner {
 						break;
 					}
 					case 7: {
+						flag = true;
+						while (flag) {
+							try {
+								bankCustomerDetails = customerHelper.getCustomerData();
+								logger.log(Level.INFO, "Select your Account to check Balance");
+
+								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
+										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+								availableAccount(allAccountDetails);
+								long accountChoice = scanner.nextLong();
+
+								if (!allAccountDetails.containsKey(accountChoice)) {
+									logger.log(Level.WARNING, "Invalid Input");
+									continue;
+								}
+
+								BankAccount allAccount = allAccountDetails.get(accountChoice);
+								scanner.nextLine();
+
+								logger.log(Level.INFO, "Enter the Starting Date YYYY-MM-DD");
+								String date1 = scanner.nextLine();
+								logger.log(Level.INFO, "Enter the Ending Date YYYY-MM-DD");
+								String date2 = scanner.nextLine();
+								List<BankTransaction> transationResult = customerHelper
+										.getTransactionWithInPeriod(allAccount.getAccountNo(), date1, date2);
+
+								if (transationResult.size() > 0) {
+									logger.log(Level.FINE,
+											"---- Transaction History Between " + date1 + " and " + date2 + " ----");
+									logTransactionHistory(transationResult);
+								} else {
+									logger.log(Level.FINEST, "No Transaction to Show");
+								}
+								flag = false;
+							} catch (InputMismatchException e) {
+								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
+								scanner.nextLine();
+							} catch (CustomException e) {
+								logger.log(Level.SEVERE, e.getMessage());
+							}
+						}
+						break;
+					}
+					case 8: {
 						logger.log(Level.WARNING, "Feature Coming Soon");
 						break;
 					}
@@ -300,14 +343,16 @@ public class CustomerRunner extends BankRunner {
 
 	static void CustomerChoicePage() {
 		logger.log(Level.FINE, "\n--- User Choice ---");
-		logger.log(Level.INFO, "1. Send Amount" + "\n2. Check Balance" + "\n3. Get Last N Day Transaction"
-				+ "\n4. My Profile" + "\n5. Withdraw" + "\n6. Deposit" + "\n7. Update Password" + "\nOther to LogOut");
+		logger.log(Level.INFO,
+				"1. Send Amount" + "\n2. Check Balance" + "\n3. Get Last N Day Transaction" + "\n4. My Profile"
+						+ "\n5. Withdraw" + "\n6. Deposit" + "\n7. Get Transaction With in Certain Period"
+						+ "\n8. Update Password" + "\nOther to LogOut");
 	}
 
 	static void logBankCustomerDetails(BankCustomer bankCustomerDetails) {
 		logger.log(Level.FINEST, "Customer Details: " + "\nName: " + bankCustomerDetails.getName() + "\nEmail: "
 				+ bankCustomerDetails.getEmail() + "\nPhone Number: " + bankCustomerDetails.getPhoneNumber()
-				+ "\nDate of Birth: " + bankCustomerDetails.getDateOfBirth() + "\nGender: "
+				+ "\nDate of Birth: " + convertMillsToDate(bankCustomerDetails.getDateOfBirth()) + "\nGender: "
 				+ bankCustomerDetails.getGender() + "\nAddress: " + bankCustomerDetails.getAddress() + "\nPAN Number: "
 				+ bankCustomerDetails.getPanNumber() + "\nAadhar Number: " + bankCustomerDetails.getAadharNumber());
 	}

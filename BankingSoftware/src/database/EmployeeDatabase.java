@@ -7,30 +7,70 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import database.structureClasses.BankBranch;
-import database.structureClasses.BankEmployee;
+import database.structure.BankBranch;
+import database.structure.BankEmployee;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
 
 public class EmployeeDatabase implements IEmployeeData {
 
-	Connection connection;
+	public Map<Integer, Map<Integer, BankEmployee>> getEmployeeByBranch(int branchId, int status)
+			throws CustomException {
 
-	public EmployeeDatabase() throws CustomException {
-		try {
-			connection = ConnectionCreation.getConnection();
-		} catch (CustomException e) {
-			throw new CustomException("Failed to Connect Employee Database");
+		Map<Integer, Map<Integer, BankEmployee>> branchEmployee = new HashMap<Integer, Map<Integer, BankEmployee>>();
+
+		String query = "SELECT U.*, B.*, Br.* " + "FROM ZohoBankUser U "
+				+ "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
+				+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID WHERE STATUS = ? AND B.BRANCH_ID = ?";
+
+		try (Connection connection = ConnectionCreation.getConnection();
+				PreparedStatement fetchByBranchStatement = connection.prepareStatement(query)) {
+			fetchByBranchStatement.setInt(1, status);
+			fetchByBranchStatement.setInt(2, branchId);
+
+			int empId;
+			try (ResultSet resultSet = fetchByBranchStatement.executeQuery()) {
+				Map<Integer, BankEmployee> tempEmployeeMap = new HashMap<>();
+				while (resultSet.next()) {
+					empId = resultSet.getInt("USER_ID");
+					BankEmployee employeeDetails = new BankEmployee();
+					employeeDetails.setUserId(empId);
+					employeeDetails.setEmail(resultSet.getString("EMAIL"));
+					employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
+					employeeDetails.setName(resultSet.getString("NAME"));
+					if (GlobalChecker.columnExists(resultSet, "DOB")) {
+						employeeDetails.setDateOfBirth(resultSet.getLong("DOB"));
+					}
+					employeeDetails.setGender(resultSet.getString("GENDER"));
+					employeeDetails.setAddress(resultSet.getString("ADDRESS"));
+					employeeDetails.setEmployeeAccess(resultSet.getInt("ACCESS"));
+
+					BankBranch branchDetails = new BankBranch();
+					branchDetails.setBranch_id(resultSet.getInt("BRANCH_ID"));
+					branchDetails.setCity(resultSet.getString("CITY"));
+					branchDetails.setIfsc(resultSet.getString("IFSC"));
+					branchDetails.setState(resultSet.getString("STATE"));
+					branchDetails.setAddress(resultSet.getString("ADDRESS"));
+					employeeDetails.setBankBranch(branchDetails);
+
+					tempEmployeeMap.put(empId, employeeDetails);
+				}
+				branchEmployee.put(branchId, tempEmployeeMap);
+				return branchEmployee;
+			}
+		} catch (SQLException e) {
+			throw new CustomException("Error Occured in employee fetch by branch", e);
 		}
 	}
 
 	@Override
-	public Map<Integer, BankEmployee> getEmployeeData(int status, int userId, int access) throws CustomException {
+	public Map<Integer,BankEmployee> getEmployeeData(int status, int userId, int access, int rowLimit, int pageCount)
+			throws CustomException {
 		try {
 			Map<Integer, BankEmployee> employeeMap = new HashMap<>();
 			String query = "SELECT U.*, B.*, Br.* " + "FROM ZohoBankUser U "
 					+ "LEFT JOIN BranchEmployee B ON U.USER_ID = B.EMP_ID "
-					+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID WHERE STATUS = ? ";
+					+ "LEFT JOIN BranchData Br ON B.BRANCH_ID = Br.BRANCH_ID WHERE U.STATUS = ? ";
 			boolean accessStatus = access != -1;
 			boolean userIdStatus = userId != -1;
 
@@ -40,15 +80,23 @@ public class EmployeeDatabase implements IEmployeeData {
 			if (userId != -1) {
 				query += " AND U.USER_ID = ?";
 			}
-			try (PreparedStatement fetchStatement = connection.prepareStatement(query)) {
+			query += " LIMIT ? OFFSET ?";
+			try (Connection connection = ConnectionCreation.getConnection();
+					PreparedStatement fetchStatement = connection.prepareStatement(query)) {
 				fetchStatement.setInt(1, status);
 				if (accessStatus && userIdStatus) {
 					fetchStatement.setInt(2, access);
 					fetchStatement.setInt(3, userId);
+					fetchStatement.setInt(4, rowLimit);
+					fetchStatement.setInt(5, pageCount);
 				} else if (accessStatus) {
 					fetchStatement.setInt(2, access);
+					fetchStatement.setInt(3, rowLimit);
+					fetchStatement.setInt(4, pageCount);
 				} else if (userIdStatus) {
 					fetchStatement.setInt(2, userId);
+					fetchStatement.setInt(3, rowLimit);
+					fetchStatement.setInt(4, pageCount);
 				}
 				int empUserId;
 				try (ResultSet resultSet = fetchStatement.executeQuery()) {
@@ -61,7 +109,7 @@ public class EmployeeDatabase implements IEmployeeData {
 						employeeDetails.setPhonenumber(resultSet.getString("PHONE_NO"));
 						employeeDetails.setName(resultSet.getString("NAME"));
 						if (GlobalChecker.columnExists(resultSet, "DOB")) {
-							employeeDetails.setDateOfBirth(resultSet.getString("DOB"));
+							employeeDetails.setDateOfBirth(resultSet.getLong("DOB"));
 						}
 						employeeDetails.setGender(resultSet.getString("GENDER"));
 						employeeDetails.setAddress(resultSet.getString("ADDRESS"));

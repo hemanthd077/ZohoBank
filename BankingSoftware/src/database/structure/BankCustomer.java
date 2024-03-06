@@ -1,11 +1,8 @@
-package database.structureClasses;
-
-import java.util.List;
+package database.structure;
 
 public class BankCustomer extends BankUser {
 	private String panNumber;
 	private String aadharNumber;
-	private List<BankAccount> bankAccount;
 
 	public String getPanNumber() {
 		return panNumber;
@@ -21,13 +18,5 @@ public class BankCustomer extends BankUser {
 
 	public void setAadharNumber(String aadharNumber) {
 		this.aadharNumber = aadharNumber;
-	}
-
-	public List<BankAccount> getBankAccount() {
-		return bankAccount;
-	}
-
-	public void setBankAccount(List<BankAccount> bankAccount) {
-		this.bankAccount = bankAccount;
 	}
 }

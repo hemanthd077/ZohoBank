@@ -1,4 +1,4 @@
-package database.structureClasses;
+package database.structure;
 
 public class BankUser {
 	private int userId;
@@ -6,7 +6,7 @@ public class BankUser {
 	private String password;
 	private String phoneNumber;
 	private String name;
-	private String dateOfBirth;
+	private long dateOfBirth;
 	private String gender;
 	private String address;
 
@@ -30,7 +30,7 @@ public class BankUser {
 		return name;
 	}
 
-	public String getDateOfBirth() {
+	public long getDateOfBirth() {
 		return dateOfBirth;
 	}
 
@@ -62,7 +62,7 @@ public class BankUser {
 		this.name = name;
 	}
 
-	public void setDateOfBirth(String dateOfBirth) {
+	public void setDateOfBirth(long dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
 

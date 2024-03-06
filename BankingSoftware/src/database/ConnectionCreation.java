@@ -8,40 +8,26 @@ import globalUtilities.CustomException;
 
 public class ConnectionCreation {
 
-	private static class SingletonHelper {
-		private static ConnectionCreation INSTANCE;
+	private static final String URL = "jdbc:mysql://localhost:3306/ZohoBank";
+	private static final String USER = "root";
+	private static final String PASSWORD = "Hemanth@123";
 
-		static {
-			try {
-				INSTANCE = new ConnectionCreation();
-			} catch (CustomException e) {
-				throw new RuntimeException("Error occurred in connection generation", e);
-			}
-		}
-	}
-
-	private Connection connection;
-	private String URL;
-	private String USER;
-	private String PASSWORD;
-
-	private ConnectionCreation() throws CustomException {
-		URL = "jdbc:mysql://localhost:3306/ZohoBank";
-		USER = "root";
-		PASSWORD = "Hemanth@123";
+	public static Connection getConnection() throws CustomException {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
-			connection = DriverManager.getConnection(URL, USER, PASSWORD);
+			return DriverManager.getConnection(URL, USER, PASSWORD);
 		} catch (SQLException | ClassNotFoundException e) {
 			throw new CustomException("Error occurred in connection generation", e);
 		}
 	}
 
-	public static Connection getConnection() throws CustomException {
-		return SingletonHelper.INSTANCE.connection;
-	}
-
-	public static void closeConnection() {
-		SingletonHelper.INSTANCE = null;
+	public static void closeConnection(Connection connection) throws CustomException {
+		if (connection != null) {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				throw new CustomException("error while Closing Connection");
+			}
+		}
 	}
 }

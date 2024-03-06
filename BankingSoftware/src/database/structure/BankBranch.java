@@ -1,4 +1,4 @@
-package database.structureClasses;
+package database.structure;
 
 public class BankBranch {
 	private int branchId;

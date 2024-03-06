@@ -9,10 +9,10 @@ import database.IAccountData;
 import database.IEmployeeData;
 import database.IUserData;
 import database.UserDatabase;
-import database.structureClasses.BankAccount;
-import database.structureClasses.BankCustomer;
-import database.structureClasses.BankBranch;
-import database.structureClasses.BankEmployee;
+import database.structure.BankAccount;
+import database.structure.BankBranch;
+import database.structure.BankCustomer;
+import database.structure.BankEmployee;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalChecker;
 import helper.enumFiles.ExceptionStatus;
@@ -46,54 +46,58 @@ public class EmployeeHelper {
 
 	public BankEmployee getMyData() throws CustomException {
 		int userId = UserDatabase.getUserId();
-		empDetails = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), userId, -1).get(userId);
+		empDetails = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), userId, -1, 1, 0).get(userId);
 		return empDetails;
 	}
 
-	public Map<Integer, BankCustomer> getInActiveUserDetails() throws CustomException {
-		return userDatabase.getUserDetails(StatusType.INACTIVE.getCode());
+	public Map<Integer, BankCustomer> getInActiveUserDetails(int rowLimit, int pageCount) throws CustomException {
+		pageCount = (pageCount - 1) * rowLimit;
+		return userDatabase.getUserDetails(StatusType.INACTIVE.getCode(), rowLimit, pageCount);
 	}
 
-	public Map<Integer, BankCustomer> getActiveCustomerDetails() throws CustomException {
-		Map<Integer, BankCustomer> activeUsers = userDatabase.getUserDetails(StatusType.ACTIVE.getCode());
+	public Map<Integer, BankCustomer> getActiveCustomerDetails(int rowLimit, int pageCount) throws CustomException {
+		pageCount = (pageCount - 1) * rowLimit;
+		Map<Integer, BankCustomer> activeUsers = userDatabase.getUserDetails(StatusType.ACTIVE.getCode(), rowLimit,
+				pageCount);
 		if (activeUsers.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
 		return activeUsers;
 	}
 
-	public Map<Integer, BankEmployee> getActiveEmployeeDetails() throws CustomException {
+	public Map<Integer, BankEmployee> getActiveEmployeeDetails(int rowLimit, int pageCount) throws CustomException {
+		pageCount = (pageCount - 1) * rowLimit;
 		Map<Integer, BankEmployee> activeEmployee = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), -1,
-				StatusType.EMPLOYEEACCESS.getCode());
+				StatusType.EMPLOYEEACCESS.getCode(), rowLimit, pageCount);
 		if (activeEmployee.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
 		return activeEmployee;
 	}
 
-	public Map<Integer, BankEmployee> getInActiveEmployeeDetails() throws CustomException {
-		Map<Integer, BankEmployee> inActiveEmployee = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), -1,
-				StatusType.EMPLOYEEACCESS.getCode());
+	public Map<Integer, BankEmployee> getInActiveEmployeeDetails(int rowLimit, int pageCount) throws CustomException {
+		pageCount = (pageCount - 1) * rowLimit;
+		Map<Integer, BankEmployee> inActiveEmployee = employeeDatabase.getEmployeeData(StatusType.INACTIVE.getCode(),
+				-1, StatusType.EMPLOYEEACCESS.getCode(), rowLimit, pageCount);
 		if (inActiveEmployee.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
 		return inActiveEmployee;
 	}
 
-	public Map<Integer, BankCustomer> getAllUserDetails() throws CustomException {
-		Map<Integer, BankCustomer> allUserDetail = userDatabase.getUserDetails(StatusType.ACTIVE.getCode());
+	public Map<Integer, BankCustomer> getAllUserDetails(int rowLimit, int pageCount) throws CustomException {
+		pageCount = (pageCount - 1) * rowLimit;
+		Map<Integer, BankCustomer> allUserDetail = userDatabase.getUserDetails(StatusType.ACTIVE.getCode(), rowLimit,
+				pageCount);
 		if (allUserDetail.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
 		return allUserDetail;
 	}
 
-	public boolean adminCreateCustomer(List<BankCustomer> userDetails) throws CustomException {
+	public boolean adminCreateCustomer(BankCustomer userDetails) throws CustomException {
 		GlobalChecker.checkNull(userDetails);
-		int userSize = userDetails.size();
-		for (int i = 0; i < userSize; i++) {
-			userDetails.get(i).setPassword(GlobalChecker.hashPassword(userDetails.get(i).getPassword()));
-		}
+		userDetails.setPassword(GlobalChecker.hashPassword(userDetails.getPassword()));
 		return userDatabase.createUser(userDetails, false);
 	}
 
@@ -111,41 +115,35 @@ public class EmployeeHelper {
 		return userDatabase.updateUser(bankUserDetails, updateMap);
 	}
 
-	public boolean adminCreateCustomerAccount(BankCustomer bankCustomerDetails, BankBranch branchDetails)
+	public boolean adminCreateCustomerAccount(BankCustomer bankCustomerDetails, BankBranch branchDetails,int accountType)
 			throws CustomException {
-		return bankAccountDatabase.createBankAccount(bankCustomerDetails, branchDetails);
+		return bankAccountDatabase.createBankAccount(bankCustomerDetails, branchDetails,accountType);
 	}
 
-	public boolean employeeCreateCustomerAccount(BankCustomer bankCustomerDetails) throws CustomException {
+	public boolean employeeCreateCustomerAccount(BankCustomer bankCustomerDetails,int accountType) throws CustomException {
 		GlobalChecker.checkNull(bankCustomerDetails);
 		BankBranch branchDetails = getMyData().getBankBranch();
-		return bankAccountDatabase.createBankAccount(bankCustomerDetails, branchDetails);
+		return bankAccountDatabase.createBankAccount(bankCustomerDetails, branchDetails,accountType);
 	}
 
-	public Map<Integer, BankAccount> getAccountAllBranch(List<BankCustomer> bankCustomerDetails, int status)
-			throws CustomException {
-		return bankAccountDatabase.getAccountWithBranch(bankCustomerDetails, status, -1);
+	public Map<Long, BankAccount> getAccountAllBranch(int userId, int status) throws CustomException {
+		return bankAccountDatabase.getAccountWithBranch(userId, status, -1);
 	}
 
-	public Map<Integer, BankAccount> getBranchAccounts(List<BankCustomer> bankCustomerDetails, int status)
-			throws CustomException {
-		Map<Integer, BankAccount> allBranchAccounts = bankAccountDatabase.getAccountWithBranch(bankCustomerDetails,
-				status, empDetails.getBankBranch().getBranchId());
-		return allBranchAccounts;
+	public Map<Long, BankAccount> getBranchAccounts(int userId, int status) throws CustomException {
+		return bankAccountDatabase.getAccountWithBranch(userId, status, empDetails.getBankBranch().getBranchId());
 	}
 
-	public boolean deleteAccount(BankAccount bankAccountDetails) throws CustomException {
-		GlobalChecker.checkNull(bankAccountDetails);
+	public boolean deleteAccount(long accountNo, int userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
 		updateMap.put("STATUS", StatusType.INACTIVE.getCode());
-		return bankAccountDatabase.updateAccount(bankAccountDetails, updateMap);
+		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
-	public boolean activateAccount(BankAccount bankAccountDetails) throws CustomException {
-		GlobalChecker.checkNull(bankAccountDetails);
+	public boolean activateAccount(long accountNo, int userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
 		updateMap.put("STATUS", StatusType.ACTIVE.getCode());
-		return bankAccountDatabase.updateAccount(bankAccountDetails, updateMap);
+		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
 	public boolean createEmployee(List<BankEmployee> employeeDetails) throws CustomException {

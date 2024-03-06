@@ -1,22 +1,22 @@
-package database.structureClasses;
+package database.structure;
 
 public class BankTransaction {
 	private String transactionId;
-	private Long transactionTimestamp;
+	private long transactionTimestamp;
 	private int userId;
-	private Long accountNumber;
+	private long accountNumber;
 	private double amount;
 	private int paymentType;
 	private double currentBalance;
-	private Long transactorAccountNumber;
-	private String decription;
+	private long transactorAccountNumber;
+	private String description;
 	private int status;
 
 	public String getTransactionId() {
 		return transactionId;
 	}
 
-	public Long getTransactionTimestamp() {
+	public long getTransactionTimestamp() {
 		return transactionTimestamp;
 	}
 
@@ -24,7 +24,7 @@ public class BankTransaction {
 		return userId;
 	}
 
-	public Long getAccountNumber() {
+	public long getAccountNumber() {
 		return accountNumber;
 	}
 
@@ -36,7 +36,7 @@ public class BankTransaction {
 		return currentBalance;
 	}
 
-	public Long getTransactorAccountNumber() {
+	public long getTransactorAccountNumber() {
 		return transactorAccountNumber;
 	}
 
@@ -44,7 +44,7 @@ public class BankTransaction {
 		this.transactionId = transactionId;
 	}
 
-	public void setTransactionTimestamp(Long transactionTimestamp) {
+	public void setTransactionTimestamp(long transactionTimestamp) {
 		this.transactionTimestamp = transactionTimestamp;
 	}
 
@@ -52,19 +52,19 @@ public class BankTransaction {
 		this.userId = userId;
 	}
 
-	public void setAccountNumber(Long accountNumber) {
+	public void setAccountNumber(long accountNumber) {
 		this.accountNumber = accountNumber;
 	}
 
 	public void setAmount(double amount) {
-		this.amount = Math.round(amount *100.0)/100.0;
+		this.amount = Math.round(amount * 100.0) / 100.0;
 	}
 
 	public void setCurrentBalance(double currentBalance) {
-		this.currentBalance = Math.round(currentBalance *100.0)/100.0;
+		this.currentBalance = Math.round(currentBalance * 100.0) / 100.0;
 	}
 
-	public void setTransactorAccountNumber(Long transactorAccountNumber) {
+	public void setTransactorAccountNumber(long transactorAccountNumber) {
 		this.transactorAccountNumber = transactorAccountNumber;
 	}
 
@@ -85,10 +85,10 @@ public class BankTransaction {
 	}
 
 	public String getDecription() {
-		return decription;
+		return description;
 	}
 
-	public void setDecription(String decription) {
-		this.decription = decription;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }
