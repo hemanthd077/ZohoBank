@@ -1,5 +1,6 @@
 package database.structure;
 
+import helper.enumFiles.AccountType;
 import helper.enumFiles.RecordStatus;
 
 public class BankAccount {
@@ -7,7 +8,7 @@ public class BankAccount {
 	private double balance;
 	private RecordStatus status;
 	private long userId;
-	private int accountType;
+	private AccountType accountType;
 	private BankBranch bankBranch;
 
 	public long getAccountNo() {
@@ -50,12 +51,12 @@ public class BankAccount {
 		this.bankBranch = bankBranch;
 	}
 
-	public int getAccountType() {
+	public AccountType getAccountType() {
 		return accountType;
 	}
 
 	public void setAccountType(int accountType) {
-		this.accountType = accountType;
+		this.accountType = AccountType.getByCode(accountType);
 	}
 
 	@Override

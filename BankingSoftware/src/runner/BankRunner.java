@@ -154,7 +154,7 @@ public class BankRunner {
 			long id = allBranchentry.getKey();
 			BankAccount bankAccount = allBranchentry.getValue();
 			BankBranch bankBranch = bankAccount.getBankBranch();
-			int accountType = bankAccount.getAccountType();
+			int accountType = bankAccount.getAccountType().getCode();
 			String accType = null;
 			if (accountType == 1) {
 				accType = "Saving";
