@@ -1,5 +1,7 @@
 package database.structure;
 
+import helper.enumFiles.TransactionStatus;
+
 public class BankTransaction {
 	private String transactionId;
 	private long transactionTimestamp;
@@ -10,7 +12,7 @@ public class BankTransaction {
 	private double currentBalance;
 	private long transactorAccountNumber;
 	private String description;
-	private int status;
+	private TransactionStatus status;
 
 	public String getTransactionId() {
 		return transactionId;
@@ -68,12 +70,12 @@ public class BankTransaction {
 		this.transactorAccountNumber = transactorAccountNumber;
 	}
 
-	public int getStatus() {
+	public TransactionStatus getStatus() {
 		return status;
 	}
 
 	public void setStatus(int status) {
-		this.status = status;
+		this.status = TransactionStatus.getByCode(status);
 	}
 
 	public int getPaymentType() {
@@ -90,5 +92,13 @@ public class BankTransaction {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Override
+	public String toString() {
+		return "BankTransaction [transactionId=" + transactionId + ", transactionTimestamp=" + transactionTimestamp
+				+ ", userId=" + userId + ", accountNumber=" + accountNumber + ", amount=" + amount + ", paymentType="
+				+ paymentType + ", currentBalance=" + currentBalance + ", transactorAccountNumber="
+				+ transactorAccountNumber + ", description=" + description + ", status=" + status + "]";
 	}
 }

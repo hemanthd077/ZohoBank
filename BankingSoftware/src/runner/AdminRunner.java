@@ -15,7 +15,7 @@ import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.UserHelper;
 import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.StatusType;
+import helper.enumFiles.RecordStatus;
 
 public class AdminRunner extends BankRunner {
 
@@ -278,7 +278,7 @@ public class AdminRunner extends BankRunner {
 													+ " Accounts Avaliable : ");
 											Map<Long, BankAccount> allAccountDetails = employeeHelper
 													.getAccountAllBranch(bankCustomerDetails.getUserId(),
-															StatusType.ACTIVE.getCode());
+															RecordStatus.ACTIVE.getCode());
 											availableAccount(allAccountDetails);
 											if (allAccountDetails.size() == 0) {
 												logger.log(Level.FINEST, "No Account Found for this User");
@@ -331,7 +331,7 @@ public class AdminRunner extends BankRunner {
 											logger.log(Level.INFO, "List of Accounts Avaliable : ");
 											Map<Long, BankAccount> allAccountDetails = employeeHelper
 													.getAccountAllBranch(bankCustomerDetails.getUserId(),
-															StatusType.ACTIVE.getCode());
+															RecordStatus.ACTIVE.getCode());
 											availableAccount(allAccountDetails);
 											if (allAccountDetails.size() == 0) {
 												logger.log(Level.FINEST, "No Account Found for this User");
@@ -405,7 +405,7 @@ public class AdminRunner extends BankRunner {
 											logger.log(Level.INFO, "Select the Account to Block.");
 											Map<Long, BankAccount> allAccountDetails = employeeHelper
 													.getAccountAllBranch(bankCustomerDetails.getUserId(),
-															StatusType.ACTIVE.getCode());
+															RecordStatus.ACTIVE.getCode());
 											availableAccount(allAccountDetails);
 											if (allAccountDetails.size() > 0) {
 												long accountChoice = scanner.nextLong();
@@ -517,7 +517,7 @@ public class AdminRunner extends BankRunner {
 											logger.log(Level.INFO, "\nList of Inactive User Bank Account.");
 											Map<Long, BankAccount> allAccountDetails = employeeHelper
 													.getAccountAllBranch(bankvalidCustomer.getUserId(),
-															StatusType.INACTIVE.getCode());
+															RecordStatus.INACTIVE.getCode());
 											availableAccount(allAccountDetails);
 											if (allAccountDetails.size() == 0) {
 												logger.log(Level.FINEST, "No Blocked Account Found for this User");
@@ -560,7 +560,7 @@ public class AdminRunner extends BankRunner {
 
 									logger.log(Level.INFO, "\nList of Inactive User Bank Account.");
 									Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-											bankvalidCustomer.getUserId(), StatusType.INACTIVE.getCode());
+											bankvalidCustomer.getUserId(), RecordStatus.INACTIVE.getCode());
 									availableAccount(allAccountDetails);
 
 									if (allAccountDetails.size() > 0) {

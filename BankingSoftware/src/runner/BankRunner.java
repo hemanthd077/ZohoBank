@@ -51,12 +51,12 @@ public class BankRunner {
 					BankUser userLoginDetails = new BankUser();
 					logger.log(Level.INFO, "Enter the User ID  to Login");
 
-					long userId = scanner.nextLong();
-					scanner.nextLine();
-					userLoginDetails.setUserId(userId);
-					logger.log(Level.INFO, "Enter the Password");
-					String password = scanner.nextLine();
-					userLoginDetails.setPassword(password);
+//					long userId = scanner.nextLong();
+//					scanner.nextLine();
+//					userLoginDetails.setUserId(userId);
+//					logger.log(Level.INFO, "Enter the Password");
+//					String password = scanner.nextLine();
+//					userLoginDetails.setPassword(password);
 
 //					Admin login Credential //Hemanth
 //					int userId = 1;
@@ -66,11 +66,11 @@ public class BankRunner {
 //					userLoginDetails.setPassword(password);
 //						
 //					customer Login 1 //Madhavan
-//					long userId = 2;
-//					userLoginDetails.setUserId(userId);
-//					logger.log(Level.INFO,"Enter the Password");
-//					String password = "Madhavan@12345";
-//					userLoginDetails.setPassword(password);
+					long userId = 2;
+					userLoginDetails.setUserId(userId);
+					logger.log(Level.INFO,"Enter the Password");
+					String password = "Madhavan@12345";
+					userLoginDetails.setPassword(password);
 
 //					customer Login 2 //Joshi
 //					long userId = 3;
@@ -235,7 +235,7 @@ public class BankRunner {
 							+ employeeDetails.getPhoneNumber() + "  Name: " + employeeDetails.getName() + "	Gender: "
 							+ employeeDetails.getGender() + "	Address: " + employeeDetails.getAddress()
 							+ "	Branch ID: " + employeeDetails.getBankBranch().getBranchId());
-			int access = employeeDetails.getEmployeeAccess();
+			int access = employeeDetails.getEmployeeAccess().getCode();
 			if (access == 1) {
 				logger.log(Level.FINEST, "Role: Admin");
 			} else {
@@ -272,7 +272,7 @@ public class BankRunner {
 
 			logger.log(Level.FINEST, "Current Balance: " + transactionHistory.get(i).getCurrentBalance());
 
-			if (transactionHistory.get(i).getStatus() == 1) {
+			if (transactionHistory.get(i).getStatus().getCode() == 1) {
 				logger.log(Level.FINEST, "Status: Success");
 			} else {
 				logger.log(Level.FINEST, "Status: Failed");

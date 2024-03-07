@@ -14,7 +14,7 @@ import globalUtilities.DateTimeUtils;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.StatusType;
+import helper.enumFiles.RecordStatus;
 
 public class CustomerRunner extends BankRunner {
 
@@ -63,7 +63,7 @@ public class CustomerRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select your Account to send Amount");
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
@@ -73,7 +73,7 @@ public class CustomerRunner extends BankRunner {
 									continue;
 								}
 
-								BankAccount refAccount = allAccountDetails.get(accountChoice);
+								bankTransactionDetails.setAccountNumber(allAccountDetails.get(accountChoice).getAccountNo());
 
 								logger.log(Level.INFO, "Enter the Description");
 								bankTransactionDetails.setDescription(scanner.nextLine());
@@ -81,8 +81,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to send Amount");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.moneyTransaction(bankTransactionDetails, refAccount,
-										userDetails.getPassword());
+								int result = customerHelper.moneyTransactionSameBank(bankTransactionDetails, userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -103,7 +102,7 @@ public class CustomerRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select your Account to check Balance");
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
@@ -139,7 +138,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Select your Account to check Balance");
 
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 
@@ -199,7 +198,7 @@ public class CustomerRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select your Account to withdraw Amount");
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
@@ -217,8 +216,8 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to withdraw");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.withdrawTransaction(bankTransactionDetails, allAccount,
-										userDetails.getPassword());
+								int result = customerHelper.withdrawTransaction(bankTransactionDetails,
+										allAccount.getAccountNo(), userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -249,7 +248,7 @@ public class CustomerRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select your Account to Deposit Amount");
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 								scanner.nextLine();
@@ -267,8 +266,8 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to Deposit");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.depositTransaction(bankTransactionDetails, allAccount,
-										userDetails.getPassword());
+								int result = customerHelper.depositTransaction(bankTransactionDetails,
+										allAccount.getAccountNo(), userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -288,7 +287,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Select your Account to check Balance");
 
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getAccountAllBranch(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								long accountChoice = scanner.nextLong();
 

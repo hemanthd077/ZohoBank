@@ -1,9 +1,11 @@
 package database.structure;
 
+import helper.enumFiles.RecordStatus;
+
 public class BankAccount {
 	private long accountNo;
 	private double balance;
-	private int status;
+	private RecordStatus status;
 	private long userId;
 	private int accountType;
 	private BankBranch bankBranch;
@@ -16,7 +18,7 @@ public class BankAccount {
 		return balance;
 	}
 
-	public int getStatus() {
+	public RecordStatus getStatus() {
 		return status;
 	}
 
@@ -29,7 +31,7 @@ public class BankAccount {
 	}
 
 	public void setStatus(int status) {
-		this.status = status;
+		this.status = RecordStatus.getByCode(status);
 	}
 
 	public long getUserId() {
@@ -56,4 +58,12 @@ public class BankAccount {
 		this.accountType = accountType;
 	}
 
+	@Override
+	public String toString() {
+		return "BankAccount [accountNo=" + accountNo + ", balance=" + balance + ", status=" + status + ", userId="
+				+ userId + ", accountType=" + accountType + ", bankBranch=" + bankBranch + ", getClass()=" + getClass()
+				+ ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+	}
+
+	
 }

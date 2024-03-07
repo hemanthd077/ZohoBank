@@ -52,7 +52,7 @@ public class UserDatabase implements IUserData {
 						BankUser userDetailsSpecific = (BankUser) userDetails;
 						if (employeeStatus) {
 							insertStatementSpecific.setInt(1, generatedKeys.getInt(1));
-							insertStatementSpecific.setInt(2, ((BankEmployee) userDetailsSpecific).getEmployeeAccess());
+							insertStatementSpecific.setInt(2, ((BankEmployee) userDetailsSpecific).getEmployeeAccess().getCode());
 							insertStatementSpecific.setInt(3,
 									((BankEmployee) userDetailsSpecific).getBankBranch().getBranchId());
 						} else {

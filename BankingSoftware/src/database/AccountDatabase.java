@@ -177,47 +177,6 @@ public class AccountDatabase implements IAccountData {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	@Override
-	public boolean storeTransaction(BankTransaction bankTransactionDetails) throws CustomException {
-		try {
-			GlobalCommonChecker.checkNull(bankTransactionDetails);
-
-			Long transactorAccNo = bankTransactionDetails.getTransactorAccountNumber();
-			String transactQuery;
-
-			if (transactorAccNo != null) {
-				transactQuery = "INSERT INTO BankTransaction (TRANS_ID,TRANS_TIMESTAMP,USER_ID,ACCOUNT_NO,AMOUNT,"
-						+ "TYPE,RUNNING_BALANCE,DESCRIPTION,TRANSACTOR_ACCOUNT_NO,STATUS) VALUES(?,?,?,?,?,?,?,?,?,?)";
-			} else {
-				transactQuery = "INSERT INTO BankTransaction (TRANS_ID,TRANS_TIMESTAMP,USER_ID,ACCOUNT_NO,AMOUNT,"
-						+ "TYPE,RUNNING_BALANCE,DESCRIPTION,STATUS) VALUES(?,?,?,?,?,?,?,?,?)";
-			}
-
-			try (Connection connection = ConnectionCreation.getConnection();
-					PreparedStatement insertTransactStatement = connection.prepareStatement(transactQuery)) {
-				insertTransactStatement.setString(1, bankTransactionDetails.getTransactionId());
-				insertTransactStatement.setLong(2, bankTransactionDetails.getTransactionTimestamp());
-				insertTransactStatement.setLong(3, bankTransactionDetails.getUserId());
-				insertTransactStatement.setLong(4, bankTransactionDetails.getAccountNumber());
-				insertTransactStatement.setDouble(5, bankTransactionDetails.getAmount());
-				insertTransactStatement.setInt(6, bankTransactionDetails.getPaymentType());
-				insertTransactStatement.setDouble(7, bankTransactionDetails.getCurrentBalance());
-				insertTransactStatement.setString(8, bankTransactionDetails.getDecription());
-
-				if (transactorAccNo != null) {
-					insertTransactStatement.setLong(9, bankTransactionDetails.getTransactorAccountNumber());
-					insertTransactStatement.setInt(10, bankTransactionDetails.getStatus());
-				} else {
-					insertTransactStatement.setInt(9, bankTransactionDetails.getStatus());
-				}
-				return insertTransactStatement.executeUpdate() != 0;
-			}
-		} catch (SQLException e) {
-			throw new CustomException("Error Occured in Updating Transaction Details", e);
-		}
-	}
-
 	@Override
 	public List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
 			throws CustomException {

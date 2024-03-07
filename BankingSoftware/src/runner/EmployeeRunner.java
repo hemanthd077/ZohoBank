@@ -12,7 +12,7 @@ import globalUtilities.DateTimeUtils;
 import helper.EmployeeHelper;
 import helper.UserHelper;
 import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.StatusType;
+import helper.enumFiles.RecordStatus;
 
 public class EmployeeRunner extends BankRunner {
 
@@ -201,7 +201,7 @@ public class EmployeeRunner extends BankRunner {
 
 									logger.log(Level.INFO, "List of Accounts Avaliable : ");
 									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+											bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 									availableAccount(allAccountDetails);
 									if (allAccountDetails.size() == 0) {
 										logger.log(Level.WARNING, "No Account Found for this Customer");
@@ -239,7 +239,7 @@ public class EmployeeRunner extends BankRunner {
 
 								logger.log(Level.INFO, "Select the Account to Block.");
 								Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-										bankCustomerDetails.getUserId(), StatusType.ACTIVE.getCode());
+										bankCustomerDetails.getUserId(), RecordStatus.ACTIVE.getCode());
 								availableAccount(allAccountDetails);
 								if (allAccountDetails.size() > 0) {
 									long accountChoice = scanner.nextLong();
@@ -291,7 +291,7 @@ public class EmployeeRunner extends BankRunner {
 
 									logger.log(Level.INFO, "List of InactiveAccounts Avaliable : ");
 									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											bankCustomerDetails.getUserId(), StatusType.INACTIVE.getCode());
+											bankCustomerDetails.getUserId(), RecordStatus.INACTIVE.getCode());
 									availableAccount(allAccountDetails);
 									if (allAccountDetails.size() == 0) {
 										logger.log(Level.WARNING, "No Account Found for this Customer");
@@ -331,7 +331,7 @@ public class EmployeeRunner extends BankRunner {
 
 									logger.log(Level.INFO, "\nList of Inactive User Bank Account.");
 									Map<Long, BankAccount> allAccountDetails = employeeHelper.getBranchAccounts(
-											bankCustomerDetails.getUserId(), StatusType.INACTIVE.getCode());
+											bankCustomerDetails.getUserId(), RecordStatus.INACTIVE.getCode());
 									availableAccount(allAccountDetails);
 
 									if (allAccountDetails.size() > 0) {

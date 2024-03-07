@@ -73,4 +73,14 @@ public class BankUser {
 	public void setAddress(String address) {
 		this.address = address;
 	}
+
+	@Override
+	public String toString() {
+		return "BankUser [userId=" + userId + ", email=" + email + ", password=" + password + ", phoneNumber="
+				+ phoneNumber + ", name=" + name + ", dateOfBirth=" + dateOfBirth + ", gender=" + gender + ", address="
+				+ address + ", getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()="
+				+ super.toString() + "]";
+	}
+	
+	
 }

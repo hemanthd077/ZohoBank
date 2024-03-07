@@ -1,16 +1,18 @@
 package database.structure;
 
+import helper.enumFiles.EmployeeAccess;
+
 public class BankEmployee extends BankUser {
 	private int employeeId;
-	private int employeeAccess;
+	private EmployeeAccess employeeAccess;
 	private BankBranch bankBranch;
 
-	public int getEmployeeAccess() {
+	public EmployeeAccess getEmployeeAccess() {
 		return employeeAccess;
 	}
 
 	public void setEmployeeAccess(int employeeAccess) {
-		this.employeeAccess = employeeAccess;
+		this.employeeAccess = EmployeeAccess.getByCode(employeeAccess);
 	}
 
 	public int getEmployeeId() {
@@ -28,4 +30,15 @@ public class BankEmployee extends BankUser {
 	public void setBankBranch(BankBranch bankBranch) {
 		this.bankBranch = bankBranch;
 	}
+
+	@Override
+	public String toString() {
+		return "BankEmployee [employeeId=" + employeeId + ", employeeAccess=" + employeeAccess + ", bankBranch="
+				+ bankBranch + ", getUserId()=" + getUserId() + ", getEmail()=" + getEmail() + ", getPassword()="
+				+ getPassword() + ", getPhoneNumber()=" + getPhoneNumber() + ", getName()=" + getName()
+				+ ", getDateOfBirth()=" + getDateOfBirth() + ", getGender()=" + getGender() + ", getAddress()="
+				+ getAddress() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()="
+				+ super.toString() + "]";
+	}
+
 }

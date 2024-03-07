@@ -46,4 +46,12 @@ public class BankBranch {
 	public void setState(String state) {
 		this.state = state;
 	}
+
+	@Override
+	public String toString() {
+		return "BankBranch [branchId=" + branchId + ", ifsc=" + ifsc + ", address=" + address + ", city=" + city
+				+ ", state=" + state + "]";
+	}
+	
+	
 }

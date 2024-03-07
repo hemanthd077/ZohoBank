@@ -15,8 +15,9 @@ import database.structure.BankEmployee;
 import database.structure.CurrentUser;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalCommonChecker;
+import helper.enumFiles.EmployeeAccess;
 import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.StatusType;
+import helper.enumFiles.RecordStatus;
 
 public class EmployeeHelper {
 
@@ -46,18 +47,18 @@ public class EmployeeHelper {
 
 	public BankEmployee getMyData() throws CustomException {
 		long userId = CurrentUser.getUserId();
-		empDetails = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), userId, -1, 1, 0).get(userId);
+		empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId);
 		return empDetails;
 	}
 
 	public Map<Long, BankCustomer> getInActiveUserDetails(int rowLimit, int pageCount) throws CustomException {
 		pageCount = (pageCount - 1) * rowLimit;
-		return userDatabase.getUserDetails(StatusType.INACTIVE.getCode(), rowLimit, pageCount);
+		return userDatabase.getUserDetails(RecordStatus.INACTIVE.getCode(), rowLimit, pageCount);
 	}
 
 	public Map<Long, BankCustomer> getActiveCustomerDetails(int rowLimit, int pageCount) throws CustomException {
 		pageCount = (pageCount - 1) * rowLimit;
-		Map<Long, BankCustomer> activeUsers = userDatabase.getUserDetails(StatusType.ACTIVE.getCode(), rowLimit,
+		Map<Long, BankCustomer> activeUsers = userDatabase.getUserDetails(RecordStatus.ACTIVE.getCode(), rowLimit,
 				pageCount);
 		if (activeUsers.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
@@ -67,8 +68,8 @@ public class EmployeeHelper {
 
 	public Map<Long, BankEmployee> getActiveEmployeeDetails(int rowLimit, int pageCount) throws CustomException {
 		pageCount = (pageCount - 1) * rowLimit;
-		Map<Long, BankEmployee> activeEmployee = employeeDatabase.getEmployeeData(StatusType.ACTIVE.getCode(), -1,
-				StatusType.EMPLOYEEACCESS.getCode(), rowLimit, pageCount);
+		Map<Long, BankEmployee> activeEmployee = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), -1,
+				EmployeeAccess.EMPLOYEE.getCode(), rowLimit, pageCount);
 		if (activeEmployee.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
@@ -77,8 +78,8 @@ public class EmployeeHelper {
 
 	public Map<Long, BankEmployee> getInActiveEmployeeDetails(int rowLimit, int pageCount) throws CustomException {
 		pageCount = (pageCount - 1) * rowLimit;
-		Map<Long, BankEmployee> inActiveEmployee = employeeDatabase.getEmployeeData(StatusType.INACTIVE.getCode(), -1,
-				StatusType.EMPLOYEEACCESS.getCode(), rowLimit, pageCount);
+		Map<Long, BankEmployee> inActiveEmployee = employeeDatabase.getEmployeeData(RecordStatus.INACTIVE.getCode(), -1,
+				EmployeeAccess.EMPLOYEE.getCode(), rowLimit, pageCount);
 		if (inActiveEmployee.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
 		}
@@ -87,7 +88,7 @@ public class EmployeeHelper {
 
 	public Map<Long, BankCustomer> getAllUserDetails(int rowLimit, int pageCount) throws CustomException {
 		pageCount = (pageCount - 1) * rowLimit;
-		Map<Long, BankCustomer> allUserDetail = userDatabase.getUserDetails(StatusType.ACTIVE.getCode(), rowLimit,
+		Map<Long, BankCustomer> allUserDetail = userDatabase.getUserDetails(RecordStatus.ACTIVE.getCode(), rowLimit,
 				pageCount);
 		if (allUserDetail.size() == 0) {
 			throw new CustomException(ExceptionStatus.USERNOTFOUND.getStatus());
@@ -103,13 +104,13 @@ public class EmployeeHelper {
 
 	public boolean deleteUser(long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
-		updateMap.put("STATUS", StatusType.INACTIVE.getCode());
+		updateMap.put("STATUS", RecordStatus.INACTIVE.getCode());
 		return userDatabase.updateUser(userId, updateMap);
 	}
 
 	public boolean activateUser(long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
-		updateMap.put("STATUS", StatusType.ACTIVE.getCode());
+		updateMap.put("STATUS", RecordStatus.ACTIVE.getCode());
 		return userDatabase.updateUser(userId, updateMap);
 	}
 
@@ -135,13 +136,13 @@ public class EmployeeHelper {
 
 	public boolean deleteAccount(long accountNo, long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
-		updateMap.put("STATUS", StatusType.INACTIVE.getCode());
+		updateMap.put("STATUS", RecordStatus.INACTIVE.getCode());
 		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
 	public boolean activateAccount(long accountNo, long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
-		updateMap.put("STATUS", StatusType.ACTIVE.getCode());
+		updateMap.put("STATUS", RecordStatus.ACTIVE.getCode());
 		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
@@ -150,7 +151,7 @@ public class EmployeeHelper {
 		int totalEmployeeSize = employeeDetails.size();
 		for (int i = 0; i < totalEmployeeSize; i++) {
 			BankEmployee bankEmployee = employeeDetails.get(i);
-			bankEmployee.setEmployeeAccess(StatusType.EMPLOYEEACCESS.getCode());
+			bankEmployee.setEmployeeAccess(EmployeeAccess.EMPLOYEE.getCode());
 			bankEmployee.setPassword(GlobalCommonChecker.hashPassword(bankEmployee.getPassword()));
 		}
 		return userDatabase.createUser(employeeDetails, true);
