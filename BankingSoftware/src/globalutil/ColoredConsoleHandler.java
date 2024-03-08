@@ -1,4 +1,4 @@
-package globalUtilities;
+package globalutil;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;

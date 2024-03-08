@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import database.structure.BankBranch;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public class BranchDatabase implements IBranchData {
 

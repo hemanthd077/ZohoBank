@@ -3,7 +3,7 @@ package database;
 import java.util.Map;
 
 import database.structure.BankBranch;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public interface IBranchData {
 

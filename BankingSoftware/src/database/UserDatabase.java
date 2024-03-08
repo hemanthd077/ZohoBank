@@ -13,8 +13,8 @@ import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import database.structure.BankUser;
 import database.structure.CurrentUser;
-import globalUtilities.CustomException;
-import globalUtilities.GlobalCommonChecker;
+import globalutil.CustomException;
+import globalutil.GlobalCommonChecker;
 
 public class UserDatabase implements IUserData {
 

@@ -1,4 +1,4 @@
-package globalUtilities;
+package globalutil;
 
 import java.time.Instant;
 import java.time.LocalDate;

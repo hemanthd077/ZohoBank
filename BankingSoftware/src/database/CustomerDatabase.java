@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankCustomer;
 import database.structure.CurrentUser;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public class CustomerDatabase implements ICustomerData {
 

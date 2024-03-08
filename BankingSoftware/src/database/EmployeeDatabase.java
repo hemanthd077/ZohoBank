@@ -10,7 +10,7 @@ import java.util.Map;
 import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankBranch;
 import database.structure.BankEmployee;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public class EmployeeDatabase implements IEmployeeData {
 

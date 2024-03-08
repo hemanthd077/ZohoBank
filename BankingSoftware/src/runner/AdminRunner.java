@@ -10,7 +10,7 @@ import database.structure.BankBranch;
 import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import database.structure.BankTransaction;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 import helper.CustomerHelper;
 import helper.EmployeeHelper;
 import helper.UserHelper;

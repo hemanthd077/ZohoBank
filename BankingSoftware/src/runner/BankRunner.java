@@ -13,10 +13,10 @@ import database.structure.BankEmployee;
 import database.structure.BankTransaction;
 import database.structure.BankUser;
 import database.structure.CurrentUser;
-import globalUtilities.CustomException;
-import globalUtilities.DateTimeUtils;
-import globalUtilities.GlobalCommonChecker;
-import globalUtilities.InputValidationUtil;
+import globalutil.CustomException;
+import globalutil.DateTimeUtils;
+import globalutil.GlobalCommonChecker;
+import globalutil.InputValidationUtil;
 import helper.UserHelper;
 
 public class BankRunner {

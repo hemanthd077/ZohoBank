@@ -4,7 +4,7 @@ import java.util.List;
 
 import database.structure.BankAccount;
 import database.structure.BankTransaction;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public interface ITransactionData {
 

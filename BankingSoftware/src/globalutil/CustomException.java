@@ -1,4 +1,4 @@
-package globalUtilities;
+package globalutil;
 
 public final class CustomException extends Exception {
 	private static final long serialVersionUID = 1L;

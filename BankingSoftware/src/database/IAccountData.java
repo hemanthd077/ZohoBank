@@ -5,7 +5,7 @@ import java.util.Map;
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public interface IAccountData {
 

@@ -1,4 +1,4 @@
-package globalUtilities;
+package globalutil;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

@@ -1,7 +1,7 @@
 package database;
 
 import database.structure.BankCustomer;
-import globalUtilities.CustomException;
+import globalutil.CustomException;
 
 public interface ICustomerData {
 

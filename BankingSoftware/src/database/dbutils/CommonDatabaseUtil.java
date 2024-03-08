@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import globalUtilities.CustomException;
-import globalUtilities.GlobalCommonChecker;
+import globalutil.CustomException;
+import globalutil.GlobalCommonChecker;
 
 public class CommonDatabaseUtil {
 

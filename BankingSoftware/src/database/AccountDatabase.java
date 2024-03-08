@@ -12,8 +12,8 @@ import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
-import globalUtilities.CustomException;
-import globalUtilities.GlobalCommonChecker;
+import globalutil.CustomException;
+import globalutil.GlobalCommonChecker;
 
 public class AccountDatabase implements IAccountData {
 
