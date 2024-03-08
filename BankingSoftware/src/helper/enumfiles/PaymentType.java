@@ -1,4 +1,4 @@
-package helper.enumFiles;
+package helper.enumfiles;
 
 public enum PaymentType {
 	DEPOSIT(3), WITHDRAWAL(2), CREDIT(1), DEBIT(0);

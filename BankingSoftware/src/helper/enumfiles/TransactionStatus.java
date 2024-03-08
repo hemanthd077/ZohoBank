@@ -1,4 +1,4 @@
-package helper.enumFiles;
+package helper.enumfiles;
 
 import java.util.HashMap;
 import java.util.Map;

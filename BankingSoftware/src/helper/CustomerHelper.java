@@ -16,9 +16,9 @@ import database.structure.CurrentUser;
 import globalUtilities.CustomException;
 import globalUtilities.DateTimeUtils;
 import globalUtilities.GlobalCommonChecker;
-import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.PaymentType;
-import helper.enumFiles.RecordStatus;
+import helper.enumfiles.ExceptionStatus;
+import helper.enumfiles.PaymentType;
+import helper.enumfiles.RecordStatus;
 
 public class CustomerHelper {
 

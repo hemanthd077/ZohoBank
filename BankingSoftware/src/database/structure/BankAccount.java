@@ -1,7 +1,7 @@
 package database.structure;
 
-import helper.enumFiles.AccountType;
-import helper.enumFiles.RecordStatus;
+import helper.enumfiles.AccountType;
+import helper.enumfiles.RecordStatus;
 
 public class BankAccount {
 	private long accountNo;

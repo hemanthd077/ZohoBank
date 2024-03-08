@@ -1,6 +1,6 @@
 package database.structure;
 
-import helper.enumFiles.TransactionStatus;
+import helper.enumfiles.TransactionStatus;
 
 public class BankTransaction {
 	private String transactionId;

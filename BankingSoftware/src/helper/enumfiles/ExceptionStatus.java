@@ -1,4 +1,4 @@
-package helper.enumFiles;
+package helper.enumfiles;
 
 public enum ExceptionStatus {
 	INVALIDPASSWORD("Invalid Password"),

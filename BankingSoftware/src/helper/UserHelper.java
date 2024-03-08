@@ -13,8 +13,8 @@ import database.structure.CurrentUser;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalCommonChecker;
 import helper.cache.LRUCache;
-import helper.enumFiles.CacheSize;
-import helper.enumFiles.ExceptionStatus;
+import helper.enumfiles.CacheSize;
+import helper.enumfiles.ExceptionStatus;
 
 public class UserHelper {
 

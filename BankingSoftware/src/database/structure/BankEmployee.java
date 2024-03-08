@@ -1,6 +1,6 @@
 package database.structure;
 
-import helper.enumFiles.EmployeeAccess;
+import helper.enumfiles.EmployeeAccess;
 
 public class BankEmployee extends BankUser {
 	private int employeeId;

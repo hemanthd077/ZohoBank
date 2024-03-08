@@ -10,8 +10,8 @@ import java.util.List;
 import database.structure.BankAccount;
 import database.structure.BankTransaction;
 import globalUtilities.CustomException;
-import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.RecordStatus;
+import helper.enumfiles.ExceptionStatus;
+import helper.enumfiles.RecordStatus;
 
 public class TransactionDatabase implements ITransactionData {
 

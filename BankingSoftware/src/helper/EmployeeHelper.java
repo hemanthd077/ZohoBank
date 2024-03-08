@@ -14,9 +14,9 @@ import database.structure.BankEmployee;
 import database.structure.CurrentUser;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalCommonChecker;
-import helper.enumFiles.EmployeeAccess;
-import helper.enumFiles.ExceptionStatus;
-import helper.enumFiles.RecordStatus;
+import helper.enumfiles.EmployeeAccess;
+import helper.enumfiles.ExceptionStatus;
+import helper.enumfiles.RecordStatus;
 
 public class EmployeeHelper {
 
