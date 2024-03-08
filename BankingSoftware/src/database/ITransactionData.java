@@ -1,13 +1,19 @@
 package database;
 
+import java.util.List;
+
 import database.structure.BankAccount;
 import database.structure.BankTransaction;
 import globalUtilities.CustomException;
 
 public interface ITransactionData {
 
-	int withdrawOrDepositTransaction(BankAccount bankAccount, BankTransaction bankTransaction) throws CustomException;
+	boolean withdrawOrDepositTransaction(BankAccount bankAccount, BankTransaction bankTransaction)
+			throws CustomException;
 
-	int netBankingTransactionSameBank(BankAccount bankAccount1, BankAccount bankAccount2, BankTransaction bankTransaction,
-			BankTransaction bankTransaction2) throws CustomException;
+	boolean netBankingTransactionSameBank(BankAccount bankAccount1, BankAccount bankAccount2,
+			BankTransaction bankTransaction, BankTransaction bankTransaction2) throws CustomException;
+
+	List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
+			throws CustomException;
 }

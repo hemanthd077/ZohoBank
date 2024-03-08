@@ -81,7 +81,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to send Amount");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.moneyTransactionSameBank(bankTransactionDetails, userDetails.getPassword());
+								boolean result = customerHelper.moneyTransactionSameBank(bankTransactionDetails, userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -216,7 +216,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to withdraw");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.withdrawTransaction(bankTransactionDetails,
+								boolean result = customerHelper.withdrawTransaction(bankTransactionDetails,
 										allAccount.getAccountNo(), userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
@@ -266,7 +266,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to Deposit");
 								userDetails.setPassword(scanner.nextLine());
 
-								int result = customerHelper.depositTransaction(bankTransactionDetails,
+								boolean result = customerHelper.depositTransaction(bankTransactionDetails,
 										allAccount.getAccountNo(), userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
@@ -369,16 +369,12 @@ public class CustomerRunner extends BankRunner {
 						+ "\nAadhar Number: " + bankCustomerDetails.getAadharNumber());
 	}
 
-	public void paymentResultLog(int result) throws CustomException {
-		switch (result) {
-		case 0: {
-			logger.log(Level.FINEST, "Transaction Failed");
-			break;
-		}
-		case 1: {
+	public void paymentResultLog(boolean result) throws CustomException {
+		if(result) {
 			logger.log(Level.FINEST, "Transaction Successfully Done");
-			break;
 		}
+		else{
+			logger.log(Level.FINEST, "Transaction Failed");
 		}
 	}
 }

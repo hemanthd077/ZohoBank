@@ -30,6 +30,7 @@ public class CustomerHelper {
 
 	public CustomerHelper() throws CustomException {
 		try {
+
 			Class<?> bankCustomerDao = Class.forName("database.CustomerDatabase");
 			customerDatabase = (ICustomerData) bankCustomerDao.getDeclaredConstructor().newInstance();
 
@@ -50,8 +51,53 @@ public class CustomerHelper {
 		}
 	}
 
+	//get logged in Customer details using (LRUCache) 
 	public BankCustomer getCustomerData() throws CustomException {
-		return customerDatabase.getCustomerData();
+		long userId = CurrentUser.getUserId();
+		if (UserHelper.customerCache.containsKey(userId)) {
+			System.out.println("From Old Memory");
+			return UserHelper.customerCache.get(userId);
+		} else {
+			System.out.println("New Memory Created");
+			BankCustomer bankCustomer = customerDatabase.getCustomerData();
+			UserHelper.customerCache.put(CurrentUser.getUserId(), bankCustomer);
+			return bankCustomer;
+		}
+	}
+
+	// LRU cache for Account Data
+	public BankAccount getAccountDataCache(long accountNo, int status, long userId) throws CustomException {
+		if (UserHelper.accountCache.containsKey(userId)) {
+			Map<Long, BankAccount> foundInnerMap = UserHelper.accountCache.get(userId);
+			if (foundInnerMap.containsKey(accountNo)) {
+				System.out.println("User account Found");
+				return foundInnerMap.get(accountNo);
+			} else {
+				System.out.println("User account added ");
+				BankAccount bankAccount = accountDatabase.getAccountData(accountNo, status);
+				UserHelper.accountCache.get(userId).put(accountNo, bankAccount);
+				return null;
+			}
+		} else {
+			System.out.println("User not Found && user & value added");
+			Map<Long, BankAccount> newAccountMap = new HashMap<Long, BankAccount>();
+			BankAccount bankAccount = accountDatabase.getAccountData(accountNo, status);
+			newAccountMap.put(accountNo, bankAccount);
+			UserHelper.accountCache.put(userId, newAccountMap);
+			return bankAccount;
+		}
+	}
+
+	// Remove the user in the LRUCache
+	public void deleteUserCache(long userId) {
+		UserHelper.accountCache.remove(userId);
+		UserHelper.customerCache.remove(userId);
+		UserHelper.employeeCache.remove(userId);
+	}
+
+	// Update Account Balance in LRUCache accountCache
+	private void cacheBalanceUpdate(long userId, long accountNo, double updatedBalance) {
+		UserHelper.accountCache.get(userId).get(accountNo).setBalance(updatedBalance);
 	}
 
 	public double checkBalance(BankAccount bankAccountDetails, String password) throws CustomException {
@@ -60,13 +106,13 @@ public class CustomerHelper {
 
 		userHelper.validatePassword(password);
 
-		BankAccount accStatus = accountDatabase.getAccountData(bankAccountDetails.getAccountNo(),
-				RecordStatus.ACTIVE.getCode());
+		BankAccount accStatus = getAccountDataCache(bankAccountDetails.getAccountNo(), RecordStatus.ACTIVE.getCode(),
+				CurrentUser.getUserId());
 
 		return accStatus.getBalance();
 	}
 
-	public int performTransaction(BankTransaction transactionDetails, long accountNo, String password,
+	private boolean performTransaction(BankTransaction transactionDetails, long accountNo, String password,
 			PaymentType paymentType) throws CustomException {
 		GlobalCommonChecker.checkNull(transactionDetails);
 		GlobalCommonChecker.checkNull(password);
@@ -78,7 +124,8 @@ public class CustomerHelper {
 			throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
 		}
 
-		BankAccount accountData = accountDatabase.getAccountData(accountNo, RecordStatus.ACTIVE.getCode());
+		BankAccount accountData = getAccountDataCache(accountNo, RecordStatus.ACTIVE.getCode(),
+				CurrentUser.getUserId());
 		double balance = accountData.getBalance();
 
 		if ((paymentType == PaymentType.WITHDRAWAL && balance - amount < 0)
@@ -102,20 +149,27 @@ public class CustomerHelper {
 		transactionDetails.setAmount((paymentType == PaymentType.WITHDRAWAL) ? 0 - amount : amount);
 		transactionDetails.setPaymentType(paymentType.getCode());
 
-		return transactionDatabase.withdrawOrDepositTransaction(bankAccount, transactionDetails);
+		if (transactionDatabase.withdrawOrDepositTransaction(bankAccount, transactionDetails)) {
+			// LRU Cache balance Update;
+			cacheBalanceUpdate(CurrentUser.getUserId(), accountNo, updatedBalance);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
-	public int withdrawTransaction(BankTransaction transactionDetails, long accountNo, String password)
+	public boolean withdrawTransaction(BankTransaction transactionDetails, long accountNo, String password)
 			throws CustomException {
 		return performTransaction(transactionDetails, accountNo, password, PaymentType.WITHDRAWAL);
 	}
 
-	public int depositTransaction(BankTransaction transactionDetails, long accountNo, String password)
+	public boolean depositTransaction(BankTransaction transactionDetails, long accountNo, String password)
 			throws CustomException {
 		return performTransaction(transactionDetails, accountNo, password, PaymentType.DEPOSIT);
 	}
 
-	public int moneyTransactionSameBank(BankTransaction transactionDetails, String password) throws CustomException {
+	public boolean moneyTransactionSameBank(BankTransaction transactionDetails, String password)
+			throws CustomException {
 
 		GlobalCommonChecker.checkNull(transactionDetails);
 		GlobalCommonChecker.checkNull(password);
@@ -129,7 +183,8 @@ public class CustomerHelper {
 
 		String transactionId = GlobalCommonChecker.generateTransactionId();
 		long senderAccNo = transactionDetails.getAccountNumber();
-		BankAccount senderAccData = accountDatabase.getAccountData(senderAccNo, RecordStatus.ACTIVE.getCode());
+		BankAccount senderAccData = getAccountDataCache(senderAccNo, RecordStatus.ACTIVE.getCode(),
+				CurrentUser.getUserId());
 
 		if (senderAccNo != 0) {
 			long transactorAccNo = transactionDetails.getTransactorAccountNumber();
@@ -149,11 +204,12 @@ public class CustomerHelper {
 				double transactorBalance = transactorAccData.getBalance();
 
 				// Setting sender and transactor balances
-				senderAccData.setBalance(senderBalance);
-				transactorAccData.setBalance(transactorBalance);
+				senderAccData.setBalance(senderBalance - amount);
+				transactorAccData.setBalance(transactorBalance + amount);
+
+				transactionDetails.setStatus(RecordStatus.ACTIVE.getCode());
 
 				transactionDetails.setPaymentType(PaymentType.DEBIT.getCode());
-				transactionDetails.setStatus(RecordStatus.ACTIVE.getCode());
 				transactionDetails.setTransactorAccountNumber(transactorAccNo);
 				BankTransaction bankTransaction1 = transactSetter(transactionId, senderAccData, transactionDetails);
 
@@ -162,15 +218,23 @@ public class CustomerHelper {
 				BankTransaction bankTransaction2 = transactSetter(transactionId, transactorAccData, transactionDetails);
 
 				// Perform the net banking transaction
-				return transactionDatabase.netBankingTransactionSameBank(senderAccData, transactorAccData,
-						bankTransaction1, bankTransaction2);
+				boolean transactionResult = transactionDatabase.netBankingTransactionSameBank(senderAccData,
+						transactorAccData, bankTransaction1, bankTransaction2);
+
+				if (transactionResult) {
+					// LRU Cache balance Update;
+					cacheBalanceUpdate(CurrentUser.getUserId(), senderAccNo, senderBalance - amount);
+					return true;
+				} else {
+					return false;
+				}
 			}
 			throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
 		}
 		throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
 	}
 
-	private static BankTransaction transactSetter(String transactionId, BankAccount accData,
+	private  BankTransaction transactSetter(String transactionId, BankAccount accData,
 			BankTransaction bankTransaction) throws CustomException {
 
 		GlobalCommonChecker.checkNull(transactionId);
@@ -180,9 +244,6 @@ public class CustomerHelper {
 		double amount = bankTransaction.getAmount();
 
 		int type = bankTransaction.getPaymentType();
-		double currentAmount = (type == PaymentType.DEBIT.getCode() || type == PaymentType.WITHDRAWAL.getCode())
-				? accData.getBalance() - amount
-				: accData.getBalance() + amount;
 
 		BankTransaction transactionDetails = new BankTransaction();
 		transactionDetails.setTransactionId(transactionId);
@@ -193,7 +254,7 @@ public class CustomerHelper {
 				(type == PaymentType.DEBIT.getCode() || type == PaymentType.WITHDRAWAL.getCode()) ? 0 - amount
 						: amount);
 		transactionDetails.setPaymentType(type);
-		transactionDetails.setCurrentBalance(currentAmount);
+		transactionDetails.setCurrentBalance(accData.getBalance());
 		transactionDetails.setTransactorAccountNumber(bankTransaction.getTransactorAccountNumber());
 		transactionDetails.setDescription(bankTransaction.getDecription());
 		transactionDetails.setStatus(bankTransaction.getStatus().getCode());
@@ -207,7 +268,7 @@ public class CustomerHelper {
 		}
 		long currentTimeMillis = DateTimeUtils.getCurrentTimeMills();
 		Long timeStamp = currentTimeMillis - DateTimeUtils.calculateNDayMills(days);
-		return accountDatabase.getTransactDetailsWithinPeriod(accountNo, timeStamp,
+		return transactionDatabase.getTransactDetailsWithinPeriod(accountNo, timeStamp,
 				DateTimeUtils.getCurrentTimeMills());
 	}
 
@@ -221,7 +282,7 @@ public class CustomerHelper {
 		if (dateMilles1 > dateMilles2) {
 			throw new CustomException(ExceptionStatus.INVALIDINPUT.getStatus());
 		}
-		return accountDatabase.getTransactDetailsWithinPeriod(accountNo, dateMilles1, dateMilles2);
+		return transactionDatabase.getTransactDetailsWithinPeriod(accountNo, dateMilles1, dateMilles2);
 
 	}
 

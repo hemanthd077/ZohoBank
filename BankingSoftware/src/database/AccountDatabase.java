@@ -4,9 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import database.dbutils.AccountUtils;
@@ -14,7 +12,6 @@ import database.dbutils.CommonDatabaseUtil;
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
-import database.structure.BankTransaction;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalCommonChecker;
 
@@ -174,43 +171,6 @@ public class AccountDatabase implements IAccountData {
 			}
 		} catch (SQLException e) {
 			throw new CustomException("Error occured in geting Account Status : ", e);
-		}
-	}
-
-	@Override
-	public List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
-			throws CustomException {
-		try {
-			String getQuery = "SELECT * FROM BankTransaction WHERE ACCOUNT_NO = ? AND TRANS_TIMESTAMP >= ? AND TRANS_TIMESTAMP<= ? ;";
-			List<BankTransaction> transactionList = new ArrayList<>();
-
-			try (Connection connection = ConnectionCreation.getConnection();
-					PreparedStatement fetchHistoryStatement = connection.prepareStatement(getQuery)) {
-				fetchHistoryStatement.setLong(1, accountNo);
-				fetchHistoryStatement.setLong(2, startDate);
-				fetchHistoryStatement.setLong(3, endDate);
-				try (ResultSet transactionSet = fetchHistoryStatement.executeQuery()) {
-
-					while (transactionSet.next()) {
-						BankTransaction transactionHistory = new BankTransaction();
-						transactionHistory.setTransactionId(transactionSet.getString("TRANS_ID"));
-						transactionHistory.setTransactionTimestamp(transactionSet.getLong("TRANS_TIMESTAMP"));
-						transactionHistory.setAccountNumber(transactionSet.getLong("ACCOUNT_NO"));
-						transactionHistory.setAmount(transactionSet.getDouble("AMOUNT"));
-						transactionHistory.setUserId(transactionSet.getLong("USER_ID"));
-						transactionHistory.setPaymentType(transactionSet.getInt("TYPE"));
-						transactionHistory.setCurrentBalance(transactionSet.getDouble("RUNNING_BALANCE"));
-						transactionHistory.setStatus(transactionSet.getInt("STATUS"));
-						transactionHistory.setDescription(transactionSet.getString("DESCRIPTION"));
-						transactionHistory.setTransactorAccountNumber(transactionSet.getLong("TRANSACTOR_ACCOUNT_NO"));
-
-						transactionList.add(transactionHistory);
-					}
-				}
-			}
-			return transactionList;
-		} catch (SQLException e) {
-			throw new CustomException("Error Occured in fetch transaction Details", e);
 		}
 	}
 

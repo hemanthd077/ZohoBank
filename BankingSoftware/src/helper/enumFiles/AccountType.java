@@ -24,10 +24,6 @@ public enum AccountType {
 	}
 
 	public static AccountType getByCode(int code) {
-		return codeMap.getOrDefault(code, throwInvalidCodeException(code));
-	}
-
-	private static AccountType throwInvalidCodeException(int code) {
-		throw new IllegalArgumentException("No enum constant with code " + code + " found");
+		return codeMap.getOrDefault(code,null);
 	}
 }

@@ -2,7 +2,6 @@ package helper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import database.IAccountData;
@@ -24,7 +23,7 @@ public class EmployeeHelper {
 	private static IUserData userDatabase;
 	private static IAccountData bankAccountDatabase;
 	private static IEmployeeData employeeDatabase;
-
+	private static CustomerHelper customerHelper;
 	static BankEmployee empDetails;
 
 	public EmployeeHelper() throws CustomException {
@@ -38,17 +37,26 @@ public class EmployeeHelper {
 			Class<?> bankEmployeeDao = Class.forName("database.EmployeeDatabase");
 			employeeDatabase = (IEmployeeData) bankEmployeeDao.getDeclaredConstructor().newInstance();
 
+			customerHelper = new CustomerHelper();
+
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new CustomException("Error Occured : Some Files Not Found ", e);
 		}
-
 	}
 
 	public BankEmployee getMyData() throws CustomException {
 		long userId = CurrentUser.getUserId();
-		empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId);
-		return empDetails;
+
+		if (UserHelper.employeeCache.containsKey(userId)) {
+			System.out.println("Existing Memory");
+			return UserHelper.employeeCache.get(userId);
+		} else {
+			System.out.println("New assigning Memory");
+			empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId); // last two fields limit and offset for pagination
+			UserHelper.employeeCache.put(userId, empDetails);
+			return empDetails;
+		}
 	}
 
 	public Map<Long, BankCustomer> getInActiveUserDetails(int rowLimit, int pageCount) throws CustomException {
@@ -105,6 +113,8 @@ public class EmployeeHelper {
 	public boolean deleteUser(long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
 		updateMap.put("STATUS", RecordStatus.INACTIVE.getCode());
+
+		customerHelper.deleteUserCache(userId);
 		return userDatabase.updateUser(userId, updateMap);
 	}
 
@@ -131,12 +141,17 @@ public class EmployeeHelper {
 	}
 
 	public Map<Long, BankAccount> getBranchAccounts(long userId, int status) throws CustomException {
-		return bankAccountDatabase.getAccountWithBranch(userId, status, empDetails.getBankBranch().getBranchId());
+		Map<Long, BankAccount> mapOfAccounts = bankAccountDatabase.getAccountWithBranch(userId, status,
+				empDetails.getBankBranch().getBranchId());
+		UserHelper.accountCache.put(userId, mapOfAccounts);
+		return mapOfAccounts;
 	}
 
 	public boolean deleteAccount(long accountNo, long userId) throws CustomException {
 		Map<Object, Object> updateMap = new HashMap<>();
 		updateMap.put("STATUS", RecordStatus.INACTIVE.getCode());
+
+		customerHelper.deleteUserCache(userId);
 		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
@@ -146,14 +161,10 @@ public class EmployeeHelper {
 		return bankAccountDatabase.updateAccount(accountNo, userId, updateMap);
 	}
 
-	public boolean createEmployee(List<BankEmployee> employeeDetails) throws CustomException {
+	public boolean createEmployee(BankEmployee employeeDetails) throws CustomException {
 		GlobalCommonChecker.checkNull(employeeDetails);
-		int totalEmployeeSize = employeeDetails.size();
-		for (int i = 0; i < totalEmployeeSize; i++) {
-			BankEmployee bankEmployee = employeeDetails.get(i);
-			bankEmployee.setEmployeeAccess(EmployeeAccess.EMPLOYEE.getCode());
-			bankEmployee.setPassword(GlobalCommonChecker.hashPassword(bankEmployee.getPassword()));
-		}
+		employeeDetails.setEmployeeAccess(EmployeeAccess.EMPLOYEE.getCode());
+		employeeDetails.setPassword(GlobalCommonChecker.hashPassword(employeeDetails.getPassword()));
 		return userDatabase.createUser(employeeDetails, true);
 	}
 }

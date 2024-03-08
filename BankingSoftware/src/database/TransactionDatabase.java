@@ -2,7 +2,10 @@ package database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import database.structure.BankAccount;
 import database.structure.BankTransaction;
@@ -13,7 +16,7 @@ import helper.enumFiles.RecordStatus;
 public class TransactionDatabase implements ITransactionData {
 
 	@Override
-	public int withdrawOrDepositTransaction(BankAccount bankAccount, BankTransaction bankTransaction)
+	public boolean withdrawOrDepositTransaction(BankAccount bankAccount, BankTransaction bankTransaction)
 			throws CustomException {
 		Connection connection = null;
 
@@ -24,7 +27,7 @@ public class TransactionDatabase implements ITransactionData {
 			updateAccountBalance(connection, bankAccount);
 			updateTransaction(connection, bankTransaction);
 			connection.commit();
-			return 1;
+			return true;
 		} catch (SQLException | CustomException e) {
 			try {
 				if (connection != null) {
@@ -42,7 +45,7 @@ public class TransactionDatabase implements ITransactionData {
 				throw new CustomException(ExceptionStatus.FAILEDTRANSACTION.getStatus(), closeException);
 			}
 		}
-		return 0;
+		return false;
 	}
 
 	private void updateTransaction(Connection connection, BankTransaction bankTransaction) throws SQLException {
@@ -77,7 +80,7 @@ public class TransactionDatabase implements ITransactionData {
 	}
 
 	@Override
-	public int netBankingTransactionSameBank(BankAccount bankAccount1, BankAccount bankAccount2,
+	public boolean netBankingTransactionSameBank(BankAccount bankAccount1, BankAccount bankAccount2,
 			BankTransaction bankTransaction1, BankTransaction bankTransaction2) throws CustomException {
 		Connection connection = null;
 
@@ -90,7 +93,7 @@ public class TransactionDatabase implements ITransactionData {
 			storeTransaction(connection, bankTransaction1);
 			storeTransaction(connection, bankTransaction2);
 			connection.commit();
-			return 1;
+			return true;
 		} catch (SQLException | CustomException e) {
 			try {
 				if (connection != null) {
@@ -108,7 +111,7 @@ public class TransactionDatabase implements ITransactionData {
 				throw new CustomException(ExceptionStatus.FAILEDTRANSACTION.getStatus(), closeException);
 			}
 		}
-		return 0;
+		return false;
 	}
 
 	private void storeTransaction(Connection connection, BankTransaction bankTransactionDetails) throws SQLException {
@@ -132,4 +135,40 @@ public class TransactionDatabase implements ITransactionData {
 		}
 	}
 
+	@Override
+	public List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
+			throws CustomException {
+		try {
+			String getQuery = "SELECT * FROM BankTransaction WHERE ACCOUNT_NO = ? AND TRANS_TIMESTAMP >= ? AND TRANS_TIMESTAMP<= ? ;";
+			List<BankTransaction> transactionList = new ArrayList<>();
+
+			try (Connection connection = ConnectionCreation.getConnection();
+					PreparedStatement fetchHistoryStatement = connection.prepareStatement(getQuery)) {
+				fetchHistoryStatement.setLong(1, accountNo);
+				fetchHistoryStatement.setLong(2, startDate);
+				fetchHistoryStatement.setLong(3, endDate);
+				try (ResultSet transactionSet = fetchHistoryStatement.executeQuery()) {
+
+					while (transactionSet.next()) {
+						BankTransaction transactionHistory = new BankTransaction();
+						transactionHistory.setTransactionId(transactionSet.getString("TRANS_ID"));
+						transactionHistory.setTransactionTimestamp(transactionSet.getLong("TRANS_TIMESTAMP"));
+						transactionHistory.setAccountNumber(transactionSet.getLong("ACCOUNT_NO"));
+						transactionHistory.setAmount(transactionSet.getDouble("AMOUNT"));
+						transactionHistory.setUserId(transactionSet.getLong("USER_ID"));
+						transactionHistory.setPaymentType(transactionSet.getInt("TYPE"));
+						transactionHistory.setCurrentBalance(transactionSet.getDouble("RUNNING_BALANCE"));
+						transactionHistory.setStatus(transactionSet.getInt("STATUS"));
+						transactionHistory.setDescription(transactionSet.getString("DESCRIPTION"));
+						transactionHistory.setTransactorAccountNumber(transactionSet.getLong("TRANSACTOR_ACCOUNT_NO"));
+
+						transactionList.add(transactionHistory);
+					}
+				}
+			}
+			return transactionList;
+		} catch (SQLException e) {
+			throw new CustomException("Error Occured in fetch transaction Details", e);
+		}
+	}
 }

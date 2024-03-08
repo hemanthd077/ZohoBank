@@ -51,26 +51,26 @@ public class BankRunner {
 					BankUser userLoginDetails = new BankUser();
 					logger.log(Level.INFO, "Enter the User ID  to Login");
 
-//					long userId = scanner.nextLong();
-//					scanner.nextLine();
-//					userLoginDetails.setUserId(userId);
-//					logger.log(Level.INFO, "Enter the Password");
-//					String password = scanner.nextLine();
-//					userLoginDetails.setPassword(password);
+					long userId = scanner.nextLong();
+					scanner.nextLine();
+					userLoginDetails.setUserId(userId);
+					logger.log(Level.INFO, "Enter the Password");
+					String password = scanner.nextLine();
+					userLoginDetails.setPassword(password);
 
 //					Admin login Credential //Hemanth
-//					int userId = 1;
+//					long userId = 1;
 //					userLoginDetails.setUserId(userId);
 //					logger.log(Level.INFO, "Enter the Password");
 //					String password = "Hem@12345";
 //					userLoginDetails.setPassword(password);
 //						
 //					customer Login 1 //Madhavan
-					long userId = 2;
-					userLoginDetails.setUserId(userId);
-					logger.log(Level.INFO,"Enter the Password");
-					String password = "Madhavan@12345";
-					userLoginDetails.setPassword(password);
+//					long userId = 2;
+//					userLoginDetails.setUserId(userId);
+//					logger.log(Level.INFO,"Enter the Password");
+//					String password = "Madhavan@12345";
+//					userLoginDetails.setPassword(password);
 
 //					customer Login 2 //Joshi
 //					long userId = 3;

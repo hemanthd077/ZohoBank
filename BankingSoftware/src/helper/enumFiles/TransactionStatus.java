@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum TransactionStatus {
-	SUCCESS(1), FAILED(1);
+	SUCCESS(1),
+	FAILED(1);
 
 	private final int code;
 	private static final Map<Integer, TransactionStatus> codeMap = new HashMap<>();
@@ -24,10 +25,6 @@ public enum TransactionStatus {
 	}
 
 	public static TransactionStatus getByCode(int code) {
-		return codeMap.getOrDefault(code, throwInvalidCodeException(code));
-	}
-
-	private static TransactionStatus throwInvalidCodeException(int code) {
-		throw new IllegalArgumentException("No enum constant with code " + code + " found");
+		return codeMap.getOrDefault(code,null);
 	}
 }

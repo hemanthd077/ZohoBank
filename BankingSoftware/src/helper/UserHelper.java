@@ -5,11 +5,15 @@ import java.util.Map;
 
 import database.IBranchData;
 import database.IUserData;
+import database.structure.BankAccount;
 import database.structure.BankBranch;
+import database.structure.BankCustomer;
 import database.structure.BankEmployee;
 import database.structure.CurrentUser;
 import globalUtilities.CustomException;
 import globalUtilities.GlobalCommonChecker;
+import helper.cache.LRUCache;
+import helper.enumFiles.CacheSize;
 import helper.enumFiles.ExceptionStatus;
 
 public class UserHelper {
@@ -19,8 +23,16 @@ public class UserHelper {
 
 	static BankEmployee empDetails;
 
+	public static LRUCache<Long, BankCustomer> customerCache;
+	public static LRUCache<Long, BankEmployee> employeeCache;
+	public static LRUCache<Long, Map<Long, BankAccount>> accountCache;
+
 	public UserHelper() throws CustomException {
 		try {
+			customerCache = new LRUCache<>(CacheSize.CUSTOMER_CACHE.getSize());
+			employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
+			accountCache = new LRUCache<>(CacheSize.ACCOUNT_CACHE.getSize());
+
 			Class<?> bankUserDao = Class.forName("database.UserDatabase");
 			userDatabase = (IUserData) bankUserDao.getDeclaredConstructor().newInstance();
 
@@ -69,9 +81,5 @@ public class UserHelper {
 			return true;
 		}
 		throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());
-	}
-
-	public long getMyUserId() {
-		return CurrentUser.getUserId();
 	}
 }

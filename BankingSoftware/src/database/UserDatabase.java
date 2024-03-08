@@ -36,7 +36,7 @@ public class UserDatabase implements IUserData {
 					PreparedStatement insertStatementUser = connection.prepareStatement(insertQueryUser,
 							Statement.RETURN_GENERATED_KEYS);
 					PreparedStatement insertStatementSpecific = connection.prepareStatement(insertQuerySpecific)) {
-
+				
 				insertStatementUser.setString(1, ((BankUser) userDetails).getEmail());
 				insertStatementUser.setString(2, ((BankUser) userDetails).getPassword());
 				insertStatementUser.setString(3, ((BankUser) userDetails).getPhoneNumber());

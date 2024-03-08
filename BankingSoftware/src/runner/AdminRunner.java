@@ -35,7 +35,6 @@ public class AdminRunner extends BankRunner {
 	}
 
 	public void AdminRunnerTask() throws CustomException {
-		long userId = userHelper.getMyUserId();
 		logger.log(Level.FINEST, "result : Admin");
 		BankEmployee bankEmployee = employeeHelper.getMyData();
 		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
@@ -592,7 +591,7 @@ public class AdminRunner extends BankRunner {
 					case 12: {
 						logger.log(Level.INFO, "\nShow My Profile.");
 						BankEmployee bankEmployee1 = employeeHelper.getMyData();
-						employeeDetails(Map.of(userId, bankEmployee1));
+						employeeDetails(Map.of(1L, bankEmployee1));
 						break;
 					}
 					case 13: {
@@ -643,8 +642,8 @@ public class AdminRunner extends BankRunner {
 									break;
 								}
 								employeeDetails.setBankBranch(bankBranch);
-
-								if (employeeHelper.createEmployee(List.of(employeeDetails))) {
+								
+								if (employeeHelper.createEmployee(employeeDetails)) {
 									logger.log(Level.FINEST, "Created successfully");
 								} else {
 									logger.log(Level.FINEST, "User already exist or creation failed");
@@ -654,6 +653,7 @@ public class AdminRunner extends BankRunner {
 								logger.log(Level.SEVERE, ExceptionStatus.WRONGINPUTTYPE.getStatus());
 								scanner.nextLine();
 							} catch (CustomException e) {
+								e.printStackTrace();
 								logger.log(Level.SEVERE, e.getMessage());
 							}
 						}
@@ -800,7 +800,7 @@ public class AdminRunner extends BankRunner {
 						+ "\n7. Delete the Bank Account" + "\n8. Show all Inactive Customer"
 						+ "\n9. Activate the Blocked Customer" + "\n10. Show all Inactive Customer Bank Account"
 						+ "\n11. Activate Blocked Customer Bank Account" + "\n12. Show My Profile"
-						+ "\n12. Create Employee" + "\n14. Show All Active Employee" + "\n15. Delete Employee"
+						+ "\n13. Create Employee" + "\n14. Show All Active Employee" + "\n15. Delete Employee"
 						+ "\n16. Show All InActive Employee" + "\n17. Activate Blocked Employee" + "\nOther to Back");
 	}
 

@@ -1,12 +1,10 @@
 package database;
 
-import java.util.List;
 import java.util.Map;
 
 import database.structure.BankAccount;
 import database.structure.BankBranch;
 import database.structure.BankCustomer;
-import database.structure.BankTransaction;
 import globalUtilities.CustomException;
 
 public interface IAccountData {
@@ -20,6 +18,4 @@ public interface IAccountData {
 
 	Map<Long, BankAccount> getAccountWithBranch(long userId, int status, int branchId) throws CustomException;
 
-	List<BankTransaction> getTransactDetailsWithinPeriod(long accountNo, long startDate, long endDate)
-			throws CustomException;
 }

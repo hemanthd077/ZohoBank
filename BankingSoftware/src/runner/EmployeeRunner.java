@@ -30,7 +30,6 @@ public class EmployeeRunner extends BankRunner {
 
 	public void EmployeeRunnerTask() throws CustomException {
 		logger.log(Level.FINEST, "result : Employee");
-		long userId = userHelper.getMyUserId();
 		BankEmployee bankEmployee = employeeHelper.getMyData();
 		logger.log(Level.FINE, "Welcome " + bankEmployee.getName() + " to BankOfZoho");
 		int employeeChoice = 1;
@@ -362,7 +361,7 @@ public class EmployeeRunner extends BankRunner {
 					}
 					case 8: {
 						logger.log(Level.FINE, "---- My Profile ----");
-						employeeDetails(Map.of(userId, employeeHelper.getMyData()));
+						employeeDetails(Map.of(1L, employeeHelper.getMyData()));
 						break;
 					}
 					}
