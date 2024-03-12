@@ -1,8 +1,11 @@
 package database.structure;
 
+import java.io.Serializable;
+
 import helper.enumfiles.EmployeeAccess;
 
-public class BankEmployee extends BankUser {
+public class BankEmployee extends BankUser implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private int employeeId;
 	private EmployeeAccess employeeAccess;
 	private BankBranch bankBranch;

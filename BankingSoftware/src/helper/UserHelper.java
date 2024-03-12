@@ -13,6 +13,7 @@ import database.structure.CurrentUser;
 import globalutil.CustomException;
 import globalutil.GlobalCommonChecker;
 import helper.cache.LRUCache;
+import helper.cache.RedisCache;
 import helper.enumfiles.CacheSize;
 import helper.enumfiles.ExceptionStatus;
 
@@ -23,16 +24,22 @@ public class UserHelper {
 
 	static BankEmployee empDetails;
 
-	public static LRUCache<Long, BankCustomer> customerCache;
+	public static RedisCache<Long, BankCustomer> customerCache;
 	public static LRUCache<Long, BankEmployee> employeeCache;
-	public static LRUCache<Long, Map<Long, BankAccount>> accountCache;
+	public static RedisCache<Long, Map<Long, BankAccount>> accountCache;
+	
+	static {
+//		customerCache = new LRUCache<>(CacheSize.CUSTOMER_CACHE.getSize());
+//		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
+//		accountCache = new LRUCache<>(CacheSize.ACCOUNT_CACHE.getSize());
+		
+		customerCache = new RedisCache<>("localhost",6379,CacheSize.CUSTOMER_CACHE.getSize());
+		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
+		accountCache = new RedisCache<>("localhost",6379,CacheSize.ACCOUNT_CACHE.getSize());
+	}
 
 	public UserHelper() throws CustomException {
 		try {
-			customerCache = new LRUCache<>(CacheSize.CUSTOMER_CACHE.getSize());
-			employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
-			accountCache = new LRUCache<>(CacheSize.ACCOUNT_CACHE.getSize());
-
 			Class<?> bankUserDao = Class.forName("database.UserDatabase");
 			userDatabase = (IUserData) bankUserDao.getDeclaredConstructor().newInstance();
 
@@ -81,5 +88,11 @@ public class UserHelper {
 			return true;
 		}
 		throw new CustomException(ExceptionStatus.INVALIDPASSWORD.getStatus());
+	}
+
+	public void clearCache() {
+		customerCache.clearCache();
+		accountCache.clearCache();
+		employeeCache.clearCache();
 	}
 }

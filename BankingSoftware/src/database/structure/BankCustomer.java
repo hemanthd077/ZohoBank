@@ -1,6 +1,9 @@
 package database.structure;
 
-public class BankCustomer extends BankUser {
+import java.io.Serializable;
+
+public class BankCustomer extends BankUser implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private String panNumber;
 	private String aadharNumber;
 

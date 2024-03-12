@@ -124,6 +124,7 @@ public class BankRunner {
 		} while (choice != 0);
 		logger.log(Level.FINE, "!!! Application Closed Successfully !!!");
 		scanner.close();
+		userHelper.clearCache();
 	}
 
 	static void avaliableBranch(Map<Integer, BankBranch> mapBranchDetails) throws CustomException {

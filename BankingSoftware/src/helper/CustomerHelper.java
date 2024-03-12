@@ -54,20 +54,20 @@ public class CustomerHelper {
 	//get logged in Customer details using (LRUCache) 
 	public BankCustomer getCustomerData() throws CustomException {
 		long userId = CurrentUser.getUserId();
-		if (UserHelper.customerCache.containsKey(userId)) {
+		if (UserHelper.customerCache.containKey(userId)) {
 			System.out.println("From Old Memory");
-			return UserHelper.customerCache.get(userId);
+			return (BankCustomer)UserHelper.customerCache.get(userId);
 		} else {
 			System.out.println("New Memory Created");
 			BankCustomer bankCustomer = customerDatabase.getCustomerData();
-			UserHelper.customerCache.put(CurrentUser.getUserId(), bankCustomer);
+			UserHelper.customerCache.set(userId, bankCustomer);
 			return bankCustomer;
 		}
 	}
 
 	// LRU cache for Account Data
 	public BankAccount getAccountDataCache(long accountNo, int status, long userId) throws CustomException {
-		if (UserHelper.accountCache.containsKey(userId)) {
+		if (UserHelper.accountCache.containKey(userId)) {
 			Map<Long, BankAccount> foundInnerMap = UserHelper.accountCache.get(userId);
 			if (foundInnerMap.containsKey(accountNo)) {
 				System.out.println("User account Found");
@@ -83,20 +83,20 @@ public class CustomerHelper {
 			Map<Long, BankAccount> newAccountMap = new HashMap<Long, BankAccount>();
 			BankAccount bankAccount = accountDatabase.getAccountData(accountNo, status);
 			newAccountMap.put(accountNo, bankAccount);
-			UserHelper.accountCache.put(userId, newAccountMap);
+			UserHelper.accountCache.set(userId, newAccountMap);
 			return bankAccount;
 		}
 	}
 
 	// Remove the user in the LRUCache
 	public void deleteUserCache(long userId) {
-		UserHelper.accountCache.remove(userId);
-		UserHelper.customerCache.remove(userId);
-		UserHelper.employeeCache.remove(userId);
+		UserHelper.accountCache.delete(userId);
+		UserHelper.customerCache.delete(userId);
+		UserHelper.employeeCache.delete(userId);
 	}
 
 	// Update Account Balance in LRUCache accountCache
-	private void cacheBalanceUpdate(long userId, long accountNo, double updatedBalance) {
+	private void cacheBalanceUpdate(long userId, long accountNo, double updatedBalance) throws CustomException {
 		UserHelper.accountCache.get(userId).get(accountNo).setBalance(updatedBalance);
 	}
 

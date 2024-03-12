@@ -48,13 +48,13 @@ public class EmployeeHelper {
 	public BankEmployee getMyData() throws CustomException {
 		long userId = CurrentUser.getUserId();
 
-		if (UserHelper.employeeCache.containsKey(userId)) {
+		if (UserHelper.employeeCache.containKey(userId)) {
 			System.out.println("Existing Memory");
 			return UserHelper.employeeCache.get(userId);
 		} else {
 			System.out.println("New assigning Memory");
 			empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId); // last two fields limit and offset for pagination
-			UserHelper.employeeCache.put(userId, empDetails);
+			UserHelper.employeeCache.set(userId, empDetails);
 			return empDetails;
 		}
 	}
@@ -143,7 +143,7 @@ public class EmployeeHelper {
 	public Map<Long, BankAccount> getBranchAccounts(long userId, int status) throws CustomException {
 		Map<Long, BankAccount> mapOfAccounts = bankAccountDatabase.getAccountWithBranch(userId, status,
 				empDetails.getBankBranch().getBranchId());
-		UserHelper.accountCache.put(userId, mapOfAccounts);
+		UserHelper.accountCache.set(userId, mapOfAccounts);
 		return mapOfAccounts;
 	}
 

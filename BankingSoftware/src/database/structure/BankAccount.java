@@ -1,9 +1,12 @@
 package database.structure;
 
+import java.io.Serializable;
+
 import helper.enumfiles.AccountType;
 import helper.enumfiles.RecordStatus;
 
-public class BankAccount {
+public class BankAccount implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private long accountNo;
 	private double balance;
 	private RecordStatus status;

@@ -11,5 +11,16 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/home/heman-pt-7356/Downloads/jar files/jedis-4.4.7.jar" sourcepath="/home/heman-pt-7356/Downloads/jar files/jedis-4.4.7-alpha3-javadoc.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/heman-pt-7356/Downloads/jar files/json-1.6.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="https://javadoc.io/doc/org.json/json/20160212"/>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

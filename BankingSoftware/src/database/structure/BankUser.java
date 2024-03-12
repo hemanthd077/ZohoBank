@@ -1,12 +1,15 @@
 package database.structure;
 
-public class BankUser {
+import java.io.Serializable;
+
+public class BankUser implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private long userId;
 	private String email;
 	private String password;
 	private String phoneNumber;
 	private String name;
-	private long dateOfBirth;
+	private Long dateOfBirth;
 	private String gender;
 	private String address;
 
@@ -30,7 +33,7 @@ public class BankUser {
 		return name;
 	}
 
-	public long getDateOfBirth() {
+	public Long getDateOfBirth() {
 		return dateOfBirth;
 	}
 
@@ -62,7 +65,7 @@ public class BankUser {
 		this.name = name;
 	}
 
-	public void setDateOfBirth(long dateOfBirth) {
+	public void setDateOfBirth(Long dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
 
