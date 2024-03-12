@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -14,19 +13,21 @@ import redis.clients.jedis.Jedis;
 
 public class RedisCache<K, V> implements ICache<K, V> {
 
-	private final Jedis jedis;
+	private Jedis jedis;
 	private final long maxCacheSize;
 	private final Deque<byte[]> keyQueue;
+	private final String cachePrefix;
 
-	public RedisCache(String host, int port, long maxCacheSize) {
+	public RedisCache(String host, int port, long maxCacheSize,String cachePrefix) {
 		this.jedis = new Jedis(host, port);
 		this.maxCacheSize = maxCacheSize;
 		this.keyQueue = new ArrayDeque<>();
+		this.cachePrefix = cachePrefix;
 	}
 
 	@Override
 	public void set(long key, V value) throws CustomException {
-		byte[] byteKey = longToByteArray(key);
+		byte[] byteKey = objectToByteArray(cachePrefix+":"+key);
 		jedis.set(byteKey, objectToByteArray(value));
 		jedis.expire(byteKey, 6000);
 		trackKey(byteKey);
@@ -34,13 +35,13 @@ public class RedisCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
-	public boolean containKey(long key) {
-		return jedis.exists(longToByteArray(key));
+	public boolean containKey(long key) throws CustomException {
+		return jedis.exists(objectToByteArray(cachePrefix+":"+key));
 	}
 
 	@Override
-	public void delete(long key) {
-		byte[] byteKey = longToByteArray(key);
+	public void delete(long key) throws CustomException {
+		byte[] byteKey = objectToByteArray(cachePrefix+":"+key);
 		jedis.del(byteKey);
 		keyQueue.remove(byteKey);
 	}
@@ -48,7 +49,7 @@ public class RedisCache<K, V> implements ICache<K, V> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public V get(long key) throws CustomException {
-		byte[] byteKey = longToByteArray(key);
+		byte[] byteKey = objectToByteArray(cachePrefix+":"+key);
 		return (V) byteArrayToObject(jedis.get(byteKey));
 	}
 
@@ -83,12 +84,6 @@ public class RedisCache<K, V> implements ICache<K, V> {
 		} catch (IOException | ClassNotFoundException e) {
 			throw new CustomException("Error occurred while converting byte to Object", e);
 		}
-	}
-
-	private byte[] longToByteArray(long value) {
-		ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-		buffer.putLong(value);
-		return buffer.array();
 	}
 
 	private void trackKey(byte[] key) {
