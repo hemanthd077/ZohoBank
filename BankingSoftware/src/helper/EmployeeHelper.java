@@ -2,7 +2,9 @@ package helper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import database.IAccountData;
 import database.IEmployeeData;
@@ -53,7 +55,14 @@ public class EmployeeHelper {
 			return UserHelper.employeeCache.get(userId);
 		} else {
 			System.out.println("New assigning Memory");
-			empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId); // last two fields limit and offset for pagination
+			empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId); // last
+																														// two
+																														// fields
+																														// limit
+																														// and
+																														// offset
+																														// for
+																														// pagination
 			UserHelper.employeeCache.set(userId, empDetails);
 			return empDetails;
 		}
@@ -137,13 +146,24 @@ public class EmployeeHelper {
 	}
 
 	public Map<Long, BankAccount> getAccountAllBranch(long userId, int status) throws CustomException {
-		return bankAccountDatabase.getAccountWithBranch(userId, status, -1);
+		Map<Long, BankAccount> tempMap = bankAccountDatabase.getAccountWithBranch(userId, status, -1);
+
+		Set<Long> tempSet = new HashSet<>();
+		for (Map.Entry<Long, BankAccount> entry : tempMap.entrySet()) {
+
+			BankAccount values = entry.getValue();
+			long accNo = values.getAccountNo();
+			UserHelper.accountCache.set(accNo, values);
+			tempSet.add(accNo);
+		}
+		UserHelper.customerAccountCache.set(userId, tempSet);
+
+		return tempMap;
 	}
 
 	public Map<Long, BankAccount> getBranchAccounts(long userId, int status) throws CustomException {
 		Map<Long, BankAccount> mapOfAccounts = bankAccountDatabase.getAccountWithBranch(userId, status,
 				empDetails.getBankBranch().getBranchId());
-		UserHelper.accountCache.set(userId, mapOfAccounts);
 		return mapOfAccounts;
 	}
 

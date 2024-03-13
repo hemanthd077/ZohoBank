@@ -1,6 +1,9 @@
 package database.structure;
 
-public class BankBranch {
+import java.io.Serializable;
+
+public class BankBranch implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private int branchId;
 	private String ifsc;
 	private String address;

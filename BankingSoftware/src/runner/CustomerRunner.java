@@ -73,7 +73,8 @@ public class CustomerRunner extends BankRunner {
 									continue;
 								}
 
-								bankTransactionDetails.setAccountNumber(allAccountDetails.get(accountChoice).getAccountNo());
+								bankTransactionDetails
+										.setAccountNumber(allAccountDetails.get(accountChoice).getAccountNo());
 
 								logger.log(Level.INFO, "Enter the Description");
 								bankTransactionDetails.setDescription(scanner.nextLine());
@@ -81,7 +82,8 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to send Amount");
 								userDetails.setPassword(scanner.nextLine());
 
-								boolean result = customerHelper.moneyTransactionSameBank(bankTransactionDetails, userDetails.getPassword());
+								boolean result = customerHelper.moneyTransactionSameBank(bankTransactionDetails,
+										userDetails.getPassword());
 								paymentResultLog(result);
 								flag = false;
 							} catch (InputMismatchException e) {
@@ -370,10 +372,9 @@ public class CustomerRunner extends BankRunner {
 	}
 
 	public void paymentResultLog(boolean result) throws CustomException {
-		if(result) {
+		if (result) {
 			logger.log(Level.FINEST, "Transaction Successfully Done");
-		}
-		else{
+		} else {
 			logger.log(Level.FINEST, "Transaction Failed");
 		}
 	}

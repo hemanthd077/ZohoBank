@@ -2,8 +2,10 @@ package helper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import database.IAccountData;
 import database.ICustomerData;
@@ -51,12 +53,12 @@ public class CustomerHelper {
 		}
 	}
 
-	//get logged in Customer details using (LRUCache) 
+	// get logged in Customer details using cache
 	public BankCustomer getCustomerData() throws CustomException {
 		long userId = CurrentUser.getUserId();
 		if (UserHelper.customerCache.containKey(userId)) {
 			System.out.println("From Old Memory");
-			return (BankCustomer)UserHelper.customerCache.get(userId);
+			return (BankCustomer) UserHelper.customerCache.get(userId);
 		} else {
 			System.out.println("New Memory Created");
 			BankCustomer bankCustomer = customerDatabase.getCustomerData();
@@ -65,39 +67,43 @@ public class CustomerHelper {
 		}
 	}
 
-	// LRU cache for Account Data
+	// cache for Account Data
 	public BankAccount getAccountDataCache(long accountNo, int status, long userId) throws CustomException {
-		if (UserHelper.accountCache.containKey(userId)) {
-			Map<Long, BankAccount> foundInnerMap = UserHelper.accountCache.get(userId);
-			if (foundInnerMap.containsKey(accountNo)) {
-				System.out.println("User account Found");
-				return foundInnerMap.get(accountNo);
-			} else {
-				System.out.println("User account added ");
-				BankAccount bankAccount = accountDatabase.getAccountData(accountNo, status);
-				UserHelper.accountCache.get(userId).put(accountNo, bankAccount);
-				return null;
-			}
+		if (UserHelper.accountCache.containKey(accountNo)) {
+			System.out.println("User account Found & value Found");
+			return UserHelper.accountCache.get(accountNo);
 		} else {
-			System.out.println("User not Found && user & value added");
-			Map<Long, BankAccount> newAccountMap = new HashMap<Long, BankAccount>();
+			System.out.println("User account Found & value Added");
 			BankAccount bankAccount = accountDatabase.getAccountData(accountNo, status);
-			newAccountMap.put(accountNo, bankAccount);
-			UserHelper.accountCache.set(userId, newAccountMap);
+			UserHelper.accountCache.set(bankAccount.getAccountNo(), bankAccount);
+			Set<Long> tempSet = new HashSet<Long>();
+			tempSet.add(bankAccount.getAccountNo());
+			UserHelper.customerAccountCache.set(userId, tempSet);
 			return bankAccount;
 		}
 	}
 
-	// Remove the user in the LRUCache
-	public void deleteUserCache(long userId) {
-		UserHelper.accountCache.delete(userId);
+	// Remove the user in the cache
+	public void deleteUserCache(long userId) throws CustomException {
 		UserHelper.customerCache.delete(userId);
 		UserHelper.employeeCache.delete(userId);
+		deleteUserAccountCache(userId);
 	}
 
-	// Update Account Balance in LRUCache accountCache
+	// remove the user account in cache
+	public void deleteUserAccountCache(long userId) throws CustomException {
+		Set<Long> tempSet = UserHelper.customerAccountCache.get(userId);
+		for (Long accNo : tempSet) {
+			UserHelper.accountCache.delete(accNo);
+		}
+		UserHelper.customerAccountCache.delete(userId);
+	}
+
+	// Update Account Balance in Cache accountCache
 	private void cacheBalanceUpdate(long userId, long accountNo, double updatedBalance) throws CustomException {
-		UserHelper.accountCache.get(userId).get(accountNo).setBalance(updatedBalance);
+		BankAccount tempAccount = UserHelper.accountCache.get(accountNo);
+		tempAccount.setBalance(updatedBalance);
+		UserHelper.accountCache.set(accountNo, tempAccount);
 	}
 
 	public double checkBalance(BankAccount bankAccountDetails, String password) throws CustomException {
@@ -150,7 +156,7 @@ public class CustomerHelper {
 		transactionDetails.setPaymentType(paymentType.getCode());
 
 		if (transactionDatabase.withdrawOrDepositTransaction(bankAccount, transactionDetails)) {
-			// LRU Cache balance Update;
+			// Cache balance Update;
 			cacheBalanceUpdate(CurrentUser.getUserId(), accountNo, updatedBalance);
 			return true;
 		} else {
@@ -234,8 +240,8 @@ public class CustomerHelper {
 		throw new CustomException(ExceptionStatus.INVALIDACCOUNT.getStatus());
 	}
 
-	private  BankTransaction transactSetter(String transactionId, BankAccount accData,
-			BankTransaction bankTransaction) throws CustomException {
+	private BankTransaction transactSetter(String transactionId, BankAccount accData, BankTransaction bankTransaction)
+			throws CustomException {
 
 		GlobalCommonChecker.checkNull(transactionId);
 		GlobalCommonChecker.checkNull(bankTransaction);

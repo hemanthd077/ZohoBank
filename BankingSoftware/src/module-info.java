@@ -4,9 +4,7 @@
 /**
  * 
  */
-module BankingSoftware {
+module BankStable_1 {
 	requires java.sql;
 	requires redis.clients.jedis;
-	requires java.desktop;
-	requires json;
 }

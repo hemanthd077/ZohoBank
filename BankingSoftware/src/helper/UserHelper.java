@@ -2,6 +2,7 @@ package helper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Set;
 
 import database.IBranchData;
 import database.IUserData;
@@ -26,16 +27,18 @@ public class UserHelper {
 
 	public static RedisCache<Long, BankCustomer> customerCache;
 	public static LRUCache<Long, BankEmployee> employeeCache;
-	public static RedisCache<Long, Map<Long, BankAccount>> accountCache;
-	
+	public static RedisCache<Long, BankAccount> accountCache;
+	public static RedisCache<Long, Set<Long>> customerAccountCache;
+
 	static {
 //		customerCache = new LRUCache<>(CacheSize.CUSTOMER_CACHE.getSize());
 //		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
 //		accountCache = new LRUCache<>(CacheSize.ACCOUNT_CACHE.getSize());
-		
-		customerCache = new RedisCache<>("localhost",6379,CacheSize.CUSTOMER_CACHE.getSize());
+
+		customerCache = new RedisCache<>("localhost", 6379, "customerCache");
 		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
-		accountCache = new RedisCache<>("localhost",6379,CacheSize.ACCOUNT_CACHE.getSize());
+		accountCache = new RedisCache<>("localhost", 6379, "accountCache");
+		customerAccountCache = new RedisCache<>("localhost", 6379, "customerAccountCache");
 	}
 
 	public UserHelper() throws CustomException {
