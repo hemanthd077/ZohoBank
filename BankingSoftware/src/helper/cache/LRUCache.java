@@ -36,14 +36,6 @@ public class LRUCache<K, V> implements ICache<K, V> {
 	}
 
 	@Override
-	public boolean containKey(long key) {
-		if (cache.containsKey(key)) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void delete(long key) {
 		cache.remove(key);
 	}

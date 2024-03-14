@@ -6,8 +6,6 @@ public interface ICache<K, V> {
 
 	public void set(long key, V value) throws CustomException;
 
-	public boolean containKey(long key) throws CustomException;
-
 	public void delete(long key) throws CustomException;
 
 	long getSize();

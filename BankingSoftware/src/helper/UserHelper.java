@@ -34,7 +34,7 @@ public class UserHelper {
 //		customerCache = new LRUCache<>(CacheSize.CUSTOMER_CACHE.getSize());
 //		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
 //		accountCache = new LRUCache<>(CacheSize.ACCOUNT_CACHE.getSize());
-
+		
 		customerCache = new RedisCache<>("localhost", 6379, "customerCache");
 		employeeCache = new LRUCache<>(CacheSize.EMPLOYEE_CACHE.getSize());
 		accountCache = new RedisCache<>("localhost", 6379, "accountCache");

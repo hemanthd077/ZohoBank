@@ -119,7 +119,7 @@ public class CustomerRunner extends BankRunner {
 								logger.log(Level.INFO, "Enter the Password to check Balance");
 								userDetails.setPassword(scanner.nextLine());
 
-								Double balance = customerHelper.checkBalance(allAccount, userDetails.getPassword());
+								Double balance = customerHelper.checkBalance(allAccount.getAccountNo(), userDetails.getPassword());
 								logger.log(Level.FINEST, "Account Balance : " + balance);
 								flag = false;
 								break;

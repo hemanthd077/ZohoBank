@@ -50,9 +50,10 @@ public class EmployeeHelper {
 	public BankEmployee getMyData() throws CustomException {
 		long userId = CurrentUser.getUserId();
 
-		if (UserHelper.employeeCache.containKey(userId)) {
+		BankEmployee employee = UserHelper.employeeCache.get(userId);
+		if (employee != null) {
 			System.out.println("Existing Memory");
-			return UserHelper.employeeCache.get(userId);
+			return employee;
 		} else {
 			System.out.println("New assigning Memory");
 			empDetails = employeeDatabase.getEmployeeData(RecordStatus.ACTIVE.getCode(), userId, -1, 1, 0).get(userId); // last
